@@ -2,8 +2,9 @@
 
 echo "Compilation du menu de la borne d'arcade"
 echo "Veuillez patienter"
-javac -cp .:/home/pi/git/MG2D *.java
-
+cd MG2D
+make
+cd ..
 cd projet
 
 
@@ -11,9 +12,14 @@ cd projet
 for i in *
 do
     cd $i
-    echo "Compilation du jeu "$i
-    echo "Veuillez patienter"
-    javac -cp .:../..:/home/pi/git/MG2D *.java
+    # Vérifier s'il y a des fichiers .java dans le dossier
+    if ls *.java 1> /dev/null 2>&1; then
+        echo "Compilation du jeu "$i
+        echo "Veuillez patienter"
+        javac -cp  *.java
+    else
+        echo "Pas de compilation nécessaire pour "$i" (projet Python ou autre)"
+    fi
     cd ..
 done
 

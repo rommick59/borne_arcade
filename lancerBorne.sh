@@ -8,10 +8,13 @@ echo "Veuillez patienter"
 ./clean.sh
 ./compilation.sh
 
-echo "Lancement du  Menu"
+echo "Lancement du Menu"
 echo "Veuillez patienter"
 
-java -cp .:/home/pi/git/MG2D Main
+ls
+
+javac Main.java
+./Main
 
 ./clean.sh
 
@@ -21,4 +24,4 @@ do
     sleep 1
 done
 
-sudo halt
+# sudo halt

@@ -11,9 +11,14 @@ cd projet
 for i in *
 do
     cd $i
-    echo "Compilation du jeu "$i
-    echo "Veuillez patienter"
-    javac -cp .:../..:$HOME *.java
+    # Vérifier s'il y a des fichiers .java dans le dossier
+    if ls *.java 1> /dev/null 2>&1; then
+        echo "Compilation du jeu "$i
+        echo "Veuillez patienter"
+        javac -cp ".:../..:$HOME" *.java
+    else
+        echo "Pas de compilation necessaire pour "$i" (projet Python ou autre)"
+    fi
     cd ..
 done
 

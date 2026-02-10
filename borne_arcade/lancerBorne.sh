@@ -8,14 +8,10 @@ echo "Veuillez patienter"
 ./clean.sh
 ./compilation.sh
 
-echo "Lancement du Menu"
+echo "Lancement du  Menu"
 echo "Veuillez patienter"
 
-ls
-
-javac Main.java
-./Main
-
+java -cp .:$HOME Main
 ./clean.sh
 
 for i in {30..1}
@@ -24,4 +20,4 @@ do
     sleep 1
 done
 
-# sudo halt
+#sudo halt

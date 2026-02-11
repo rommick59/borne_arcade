@@ -119,11 +119,11 @@ class Menu():
         self.screen.blit(dev2_text, dev2_rect)
         
         # Instruction pour revenir
-        back_text = FONT.render('Appuyez sur Q pour revenir', False, (0, 0, 0))
+        back_text = FONT.render('Appuyez sur Retour pour revenir', False, (0, 0, 0))
         back_rect = back_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 150))
         self.screen.blit(back_text, back_rect)
         
-        if pygame.key.get_pressed()[pygame.K_q]:
+        if pygame.key.get_pressed()[pygame.K_f]:
             return False
         
         return True

@@ -2,7 +2,6 @@
 
 setxkbmap borne
 
-cd /home/pi/git/borne_arcade
 echo "nettoyage des répertoires"
 echo "Veuillez patienter"
 ./clean.sh

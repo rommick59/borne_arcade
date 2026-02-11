@@ -545,263 +545,21 @@ class OllamaWrapper:
             data = json.load(f)
 
         return data
-
-    def classifier_mail(self):
-        """
-        Fonction qui répond au TP1. Elle classe les mails en 3 catégories :
-        - Email personnel
-        - Demande de rendez-vous
-        - Propositions commerciales (devis)
-
-        Les résultats ne sont pas les meilleurs, il faudrait que ma question soit plus précise ou que mon system_promt soit plus strict.
-        """
-
-        # Je défini ma question de base
-        question = "Je vais te passer des mails, tu va me dire si c'est un email personnel et/ou une demande de rendez vous et/ou une propositions commerciales (devis). Tu n'expliras pas la réponse\n"
-
-        # Je défini mon system :
-        system_prompt = (
-            "Tu es un classificateur d'emails.\n"
-            "Ta tache est de classer chaque email dans une seule catégorie.\n\n"
-            "Catégories possibles :\n"
-            "- personnel\n"
-            "- rendez_vous\n"
-            "- propositions commerciales\n\n"
-            "Règles Obligatoires :\n"
-            "- Une seule catégorie obligatoire\n"
-            "- Aucun texte explicatif\n"
-            "- Aucune phrase\n"
-            "- Réponds uniquement par la catégorie\n\n"
-        )
-
-        # Je récupere mes mails
-        emails = self.contenu_json("data/emails.json")
-
-        # Je récupere mes models
-        models = self.list_models()
-
-        # Je test deux fois, la premiere sans le system_promt et la deuxieme avec
-        for i in range(2):
-
-            if i == 0:
-
-                print(f"\n----- SANS Systeme Promt ----- ")
-                s_p = None
-            else:
-
-                print(f"\n----- AVEC Systeme Promt ----- ")
-                s_p = system_prompt
-
-            # Je boucle sur mes models
-            for model in models:
-
-                print(f"\n----- Model : {model.name} ----- ")
-                # Je boucle sur mes mails
-                for email in emails:
-                    # Try/Except pour l'impossibilité de joindre un serveur
-                    try:
-                        r = self.generate_text(
-                            model=model.name, prompt=question +
-                            email['content'],
-                            system=s_p)
-                        print(f"Email n°{email['id']} : {r.response}")
-                    except OllamaConnectionError as e:
-                        print(
-                            f"Erreur lors de la requête pour l'email n°{email['id']} : {e}")
-
-    def classifier_image(self):
-        """
-        Fonction qui répond au TP1. Elle classe les mails en 3 catégories :
-            - Email personnel
-            - Demande de rendez-vous
-            - Propositions commerciales (devis)
-
-        Les résultats ne sont pas les meilleurs, il faudrait que ma question soit plus précise.
-
-        """
-
-        # Je défini ma question de base
-        question = "Je vais te passer une image, peux-tu me dire si c'est des bureaux (travail) ou des scènes de vacances (loisirs) ?"
-
-        # Je défini mon system prompt
-        system_prompt = "Tu es un expert en reconnaissance d'images. Tu fera une réponse courte. Bureaux ou Vacances ?"
-
-        # Je récupere mes models
-        model = self.list_models()[1]  # On prend qwen2.5vl:7b
-
-        # Les 4 images
-        images = [
-            "bureau_01.png",
-            "bureau_02.png",
-            "vacances_01.png",
-            "vacances_02.png",
-            "chien.png",  # Chien dans la nature
-            "chien_bureau.png",  # Chien dans le bureau
-        ]
-
-        # Je boucle sur les images
-        for image in images:
-
-            r = self.generate_with_image(
-                model=model.name, prompt=question, image="images/" + image, system=system_prompt)
-            image_nom = image.split(".")[0]
-            print(f"\nImage {image_nom} : {r.response}")
-
-    def similarite_cosinus(self, vec_a: list[float], vec_b: list[float]) -> float:
-        """
-        Calcule la similarité cosinus entre deux vecteurs numériques.
-        Retourne un score entre -1 et 1, pour les embeddings c'est entre 0 et 1.
-        """
-        import math
-
-        # Produit scalaire
-        dot_product = sum(a * b for a, b in zip(vec_a, vec_b))
-
-        # Normes des vecteurs
-        norm_a = math.sqrt(sum(a * a for a in vec_a))
-        norm_b = math.sqrt(sum(b * b for b in vec_b))
-
-        # Sécurité
-        if norm_a == 0 or norm_b == 0:
-            return 0.0
-
-        return dot_product / (norm_a * norm_b)
-
-    def score_mots_cles(self, requete: str, document: str) -> int:
-        """
-        Score basé sur la fréquence des mots de la requête dans le document (TF simple)
-        GENERER PAR CHATGPT, A VERIFIER ET TESTER
-
-        Args : 
-            requete (str): Mots clés de la requête
-            document (str): Contenu du document
-
-        Returns : 
-            int : Score de similarité
-        """
-        import re
-        from collections import Counter
-
-        # Nettoyage + tokenisation
-        requete_tokens = re.findall(r"\w+", requete.lower())
-        doc_tokens = re.findall(r"\w+", document.lower())
-
-        doc_counter = Counter(doc_tokens)
-
-        # Somme des occurrences des mots de la requête
-        score = sum(doc_counter[token] for token in requete_tokens)
-
-        return score
-
-    def best_result(self, requete: str, nb_results: int = 5, semantique: bool = True) -> list:
-        """Fonction permettant d'avoir les 5 meilleurs résultats pour une requete
+    
+    def contenu_text(self, filename: str):
+        """Renvoie le contenu d'un fichier texte
 
         Args:
-            requete (str): La requete à envoyer
-            nb_results (int, optional): Le nombre de résultats à renvoyer. Defaults to 5.
-            semantique (bool, optional): Si on veut utiliser la similarité cosinus ou non. Defaults to True.
+            filename (str): Le nom du fichier
 
         Returns:
-            list: Liste des 5 meilleurs résultats
+            str: Le contenu du fichier.
         """
 
-        # Charger les données
-        contenu = self.contenu_json("data/documents.json")
+        with open(filename, "r", encoding="utf-8") as f:
+            data = f.read()
 
-        # Je récupere mes models
-        models = self.list_models()
-
-        # Calculer l'embedding pour la requête
-        requete_embedding = self.embed(model=models[0].name, text=requete)
-
-        if semantique:
-
-            # Calculer un embedding pour chaque document
-            for doc in contenu:
-
-                # Calculer l'embedding pour le document
-                doc_embedding = self.embed(
-                    model=models[0].name,
-                    text=doc['content'])
-
-                # Calculer la similarité cosinus entre la requête et le document
-                similarite = self.similarite_cosinus(
-                    requete_embedding, doc_embedding)
-
-                # Stocker la similarité
-                doc['similarite'] = similarite
-
-        else:
-            for doc in contenu:
-                doc['similarite'] = self.score_mots_cles(
-                    requete, doc['content'])
-
-        # Trier les documents par score
-        contenu.sort(key=lambda x: x['similarite'], reverse=True)
-
-        return contenu[:nb_results]
-
-    def RAG(self, requete: str):
-        """Fonction RAG, qui permet de lier les meilleurs résultats avec le LLM
-
-        Args:
-            requete (str): La réquête utilisateur.
-        """        
-
-        # Je récupere mes models
-        models = self.list_models()
-
-        # Récupérer les 3 documents les + probables
-        documents = self.best_result(requete=requete, nb_results=3)
-
-        # Construit le promt
-        prompt = f"Répond a la réquete : {requete} en fonction de ces 3 documents : {documents}"
-
-        # On fait le system_promt
-        system_prompt = system_prompt = """
-            Tu es un assistant de question-réponse basé sur des documents.
-            Tu dois répondre exclusivement à partir des informations contenues dans les documents fournis dans le prompt.
-
-            Les documents sont une liste de dictionnaires contenant les clés suivantes :
-            - id
-            - title
-            - content
-            - similarité
-
-            Règles strictes :
-            - N'utilise aucune connaissance externe.
-            - N'invente aucune information.
-            - Si les documents ne permettent pas de répondre clairement à la requête, indique-le explicitement.
-            - Si aucun des documents n'est pertinent pour la réponse, indique le.
-
-            Format de la réponse :
-            1. Réponse synthétique à la requête.
-            2. En fin de réponse, ajoute une section exactement sous la forme :
-
-            **Sources :**
-            - Doc N°<id> - <title>
-
-            3. Ajoute enfin un score de confiance global basé sur la similarité des documents utilisés (exprimé en pourcentage).
-            """
-
-        # On boucle sur les modéles
-        for model in models:
-
-            try:
-
-                # Information
-                print(f"\n\t\t====== Modele : {model.name} ======")
-
-                # On fait la requete
-                r = self.generate_text(
-                    model=model.name, prompt=prompt, system=system_prompt)
-
-                # On affiche la réponse
-                print(r.response)
-
-            except Exception as e:
-                print(f"Erreur pour le modèle {model.name} : {e}")
-
+        return data
 
 # ------------------------------
 # Exemple d'utilisation (utile en TD)
@@ -819,37 +577,35 @@ if __name__ == "__main__":
         # r = client.generate_text(
         #     model="gemma2:latest", prompt="Bonjour, t'es qui ?")
         # print("Generate:", r.response)
+        
+        prompt = "Donne moi quel compilation à un probleme et quel est le probleme suivant ce fichier de logs." + client.contenu_text("borne_arcade\\logs\\compilation.log")
+        sys_prompt = """
+        Tu es un analyste de code expert.
 
-        # === Exemple TP1 ===
-        # client.classifier_mail()
+        Tu DOIS répondre STRICTEMENT selon le format suivant :
 
-        # === Exemple TP2 ===
-        # client.classifier_image()
+        1 PROBLÈME :
+        Une seule phrase claire résumant le ou les problèmes détectés.
 
-        # === Exemple TP3 ===
-        # Doc non pertinent avec de la sémantique
-        # contenu = client.best_result("Que peut tu me dire du coronavirus", semantique=True)
-        # for doc in contenu:
-        #     print(f"{doc['similarite']} -- {doc['id']} -- {doc['content']}")
+        2 COMPILATIONS CONCERNÉES :
+        Liste structurée sous cette forme :
+        - NomFichier.java :
+        - Ligne XX : description courte
+        - Ligne XX : description courte
 
-        # Doc non pertinent sans de la sémantique
-        # contenu = client.best_result("Que peut tu me dire du coronavirus", semantique=False)
-        # for doc in contenu:
-        #     print(f"{doc['similarite']} -- {doc['id']} -- {doc['content']}")
+        3 SOLUTION :
+        Explication claire et concise de la correction à apporter.
 
-        # Doc pertinent avec de la sémantique
-        # contenu = client.best_result("Parle moi de cyber - sécurité", semantique=True)
-        # for doc in contenu:
-        #     print(f"{doc['similarite']} -- {doc['id']} -- {doc['content']}")
+        4 EXEMPLE DE CORRECTION :
+        Bloc de code AVANT puis bloc de code APRÈS.
 
-        # Doc pertinent sans de la sémantique
-        # contenu = client.best_result("Parle moi de cyber - sécurité", semantique=False)
-        # for doc in contenu:
-        #     print(f"{doc['similarite']} -- {doc['id']} -- {doc['content']}")
+        Tu ne dois rien ajouter en dehors de ces 4 sections.
+        Réponse claire, structurée, sans texte inutile.
+        """
 
-        # === Exemple TP4 ===
-        # Document non pertinent
-        # client.RAG("Quels sont les symptomes du coronavirus") 
-
-        # Document pertinent
-        # client.RAG("Comment bien planifier son voyage pour le japon ? ") 
+        r = client.generate_text(
+            model="gemma2:latest",
+            prompt=prompt, system=sys_prompt
+        )
+        
+        print(r.response)

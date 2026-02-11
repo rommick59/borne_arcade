@@ -2,7 +2,7 @@
 
 echo "Compilation du menu de la borne d'arcade"
 echo "Veuillez patienter"
-javac -cp .:$HOME *.java
+javac -Xlint:deprecation -cp .:$HOME *.java
 
 cd projet
 
@@ -15,7 +15,7 @@ do
     if ls *.java 1> /dev/null 2>&1; then
         echo "Compilation du jeu "$i
         echo "Veuillez patienter"
-        javac -cp ".:../..:$HOME" *.java
+        javac -Xlint:deprecation -cp ".:../..:$HOME" *.java
     else
         echo "Pas de compilation necessaire pour "$i" (projet Python ou autre)"
     fi

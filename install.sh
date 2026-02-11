@@ -2,13 +2,56 @@
 
 echo "===== Vérification des dépendances système ====="
 
+# Fonction pour comparer les versions
+version_greater_equal() {
+    # Retourne 0 si $1 >= $2
+    printf '%s\n%s\n' "$1" "$2" | sort -V -C
+}
+
+# Détecte l'architecture du Pi
+ARCH=$(dpkg --print-architecture)
+echo "Architecture détectée : $ARCH"
+
 # --- Vérification Java ---
 if command -v java >/dev/null 2>&1; then
-    echo "Java est déjà installé : $(java -version 2>&1 | head -n 1)"
+    CURRENT_VERSION=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}')
+    echo "Java est installé : version $CURRENT_VERSION"
+
+    # Récupérer la dernière version LTS (Java 17) via Temurin
+    LATEST_VERSION=$(curl -s https://api.adoptium.net/v3/info/available_releases | grep -oP '(?<="most_recent_feature_release":)[0-9]+')
+    
+    if version_greater_equal "$CURRENT_VERSION" "$LATEST_VERSION"; then
+        echo "Java est déjà à jour (>= $LATEST_VERSION)"
+    else
+        read -p "Une version plus récente de Java est disponible ($LATEST_VERSION). Veux-tu la mettre à jour ? [y/N] " RESP
+        if [[ "$RESP" =~ ^[Yy]$ ]]; then
+            echo "Mise à jour de Java..."
+            sudo apt update
+            sudo apt install -y wget gnupg software-properties-common
+            wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | sudo gpg --dearmor -o /usr/share/keyrings/adoptium.gpg
+            echo "deb [signed-by=/usr/share/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/adoptium.list
+            sudo apt update
+            if [[ "$ARCH" == "arm64" ]]; then
+                sudo apt install -y temurin-17-jdk:arm64
+            else
+                sudo apt install -y temurin-17-jdk:armhf
+            fi
+            echo "Java mis à jour !"
+        fi
+    fi
 else
-    echo "Java non trouvé. Installation..."
+    echo "Java non trouvé. Installation de la dernière version stable..."
     sudo apt update
-    sudo apt install -y default-jdk
+    sudo apt install -y wget gnupg software-properties-common
+    wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | sudo gpg --dearmor -o /usr/share/keyrings/adoptium.gpg
+    echo "deb [signed-by=/usr/share/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/adoptium.list
+    sudo apt update
+    if [[ "$ARCH" == "arm64" ]]; then
+        sudo apt install -y temurin-17-jdk:arm64
+    else
+        sudo apt install -y temurin-17-jdk:armhf
+    fi
+    echo "Java installé !"
 fi
 
 # --- Vérification Python3 ---

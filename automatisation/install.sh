@@ -27,29 +27,36 @@ fi
 # ------------------- PYTHON SECTION -----------------------
 # ==========================================================
 
-# Récupère la dernière version stable de Python depuis python.org
 echo ""
 echo "===== Vérification de la version Python ====="
 
-LATEST_PYTHON=$(curl -s https://www.python.org/ftp/python/ \
-    | grep -oP '(?<=href=")[0-9]+\.[0-9]+\.[0-9]+(?=/)' \
-    | sort -V \
-    | tail -1)
-
-if [ -z "$LATEST_PYTHON" ]; then
-    echo "Impossible de récupérer la dernière version Python. Abandon."
-    exit 1
+# Pour Raspberry Pi 32-bit, Python 3.11 est la dernière version recommandée
+# Python 3.12+ nécessite des ajustements pour l'architecture 32-bit
+if [ "$ARCH" = "i386" ] || [ "$ARCH" = "armhf" ]; then
+    echo "Architecture 32-bit détectée, limitation à Python 3.11.x"
+    LATEST_PYTHON="3.11.11"  # Dernière version 3.11 stable
+else
+    # Pour 64-bit, on peut aller plus haut
+    LATEST_PYTHON="3.13.1"
 fi
 
-echo "Dernière version Python disponible : $LATEST_PYTHON"
+echo "Version Python cible : $LATEST_PYTHON"
 
 # Vérifie la version Python actuellement installée
 if command -v python3 >/dev/null 2>&1; then
     CURRENT_PYTHON=$(python3 --version 2>&1 | awk '{print $2}')
     echo "Python3 actuellement installé : $CURRENT_PYTHON"
 
-    if [ "$CURRENT_PYTHON" = "$LATEST_PYTHON" ]; then
-        echo "Python3 est déjà à jour."
+    # Compare les versions (simple comparaison)
+    CURRENT_MAJOR=$(echo "$CURRENT_PYTHON" | cut -d. -f1)
+    CURRENT_MINOR=$(echo "$CURRENT_PYTHON" | cut -d. -f2)
+    TARGET_MAJOR=$(echo "$LATEST_PYTHON" | cut -d. -f1)
+    TARGET_MINOR=$(echo "$LATEST_PYTHON" | cut -d. -f2)
+
+    if [ "$CURRENT_MAJOR" -gt "$TARGET_MAJOR" ] || \
+       ([ "$CURRENT_MAJOR" -eq "$TARGET_MAJOR" ] && [ "$CURRENT_MINOR" -ge "$TARGET_MINOR" ]); then
+        echo "Python3 est suffisamment récent."
+        COMPILE_PYTHON=false
     else
         read -p "Mise à jour Python $CURRENT_PYTHON -> $LATEST_PYTHON ? [y/N] " RESP
         if [[ "$RESP" =~ ^[Yy]$ ]]; then
@@ -67,7 +74,16 @@ fi
 if [ "${COMPILE_PYTHON:-false}" = true ]; then
     echo ""
     echo "===== Compilation de Python $LATEST_PYTHON depuis les sources ====="
+    echo "⚠️  ATTENTION : Cette opération peut prendre 30-60 minutes sur Raspberry Pi"
+    
+    read -p "Continuer ? [y/N] " CONFIRM
+    if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
+        echo "Installation Python annulée."
+        COMPILE_PYTHON=false
+    fi
+fi
 
+if [ "${COMPILE_PYTHON:-false}" = true ]; then
     # Dépendances nécessaires à la compilation
     sudo apt update
     sudo apt install -y \
@@ -82,7 +98,9 @@ if [ "${COMPILE_PYTHON:-false}" = true ]; then
         libgdbm-dev \
         liblzma-dev \
         uuid-dev \
-        wget
+        wget \
+        tk-dev \
+        libgdbm-compat-dev
 
     PYTHON_TAR="Python-${LATEST_PYTHON}.tgz"
     PYTHON_URL="https://www.python.org/ftp/python/${LATEST_PYTHON}/${PYTHON_TAR}"
@@ -92,16 +110,32 @@ if [ "${COMPILE_PYTHON:-false}" = true ]; then
     cd "$TEMP_DIR"
 
     echo "Téléchargement de $PYTHON_URL ..."
-    wget -q --show-progress "$PYTHON_URL"
+    
+    # Téléchargement avec timeout et retry
+    if ! wget --timeout=30 --tries=3 --show-progress "$PYTHON_URL"; then
+        echo "❌ Erreur lors du téléchargement de Python $LATEST_PYTHON"
+        echo "URL tentée : $PYTHON_URL"
+        echo ""
+        echo "Vérifiez que cette version existe sur python.org/ftp/python/"
+        cd /
+        rm -rf "$TEMP_DIR"
+        exit 1
+    fi
 
     echo "Extraction..."
     tar -xf "$PYTHON_TAR"
     cd "Python-${LATEST_PYTHON}"
 
     echo "Configuration... (peut prendre quelques minutes sur Raspberry Pi)"
+    # Pour les Pi 32-bit, on évite --enable-optimizations qui est très lent
+    if [ "$ARCH" = "i386" ] || [ "$ARCH" = "armhf" ]; then
+        ./configure --prefix=/usr/local
+    else
     ./configure --enable-optimizations --prefix=/usr/local
+    fi
 
-    echo "Compilation... (peut prendre 10-20 min sur Raspberry Pi)"
+    echo "Compilation... (peut prendre 30-60 min sur Raspberry Pi)"
+    echo "Utilisation de $(nproc) cœurs CPU"
     make -j$(nproc)
 
     echo "Installation..."

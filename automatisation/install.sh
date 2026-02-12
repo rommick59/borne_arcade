@@ -121,6 +121,25 @@ if [ "${COMPILE_PYTHON:-false}" = true ]; then
 fi
 
 # ==========================================================
+# --------------------- LUA SECTION ------------------------
+# ==========================================================
+
+echo ""
+echo "===== VÉRIFICATION LUA ====="
+
+if command -v lua >/dev/null 2>&1; then
+    CURRENT_LUA=$(lua -v 2>&1 | awk '{print $2}')
+    echo "Lua déjà installé : version $CURRENT_LUA"
+else
+    echo "Lua non trouvé. Installation via apt..."
+    sudo apt update
+    sudo apt install -y lua5.4
+    CURRENT_LUA=$(lua -v 2>&1 | awk '{print $2}')
+    echo "Lua installé : version $CURRENT_LUA"
+fi
+
+
+# ==========================================================
 # -------------------- MG2D SECTION ------------------------
 # ==========================================================
 
@@ -161,3 +180,4 @@ echo ""
 echo "===== SCRIPT TERMINÉ ====="
 echo "Java    : $(java -version 2>&1 | awk -F '"' '/version/ {print $2}')"
 echo "Python3 : $(python3 --version)"
+echo "Lua     : $(lua -v 2>&1 | awk '{print $2}')"

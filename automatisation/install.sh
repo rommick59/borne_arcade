@@ -137,6 +137,22 @@ main() {
     install_mg2d
 
     print_summary
+
+    #!/bin/bash
+
+    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+    # === 1. Lancer la borne ===
+    cd "$SCRIPT_DIR/../borne_arcade" || exit 1
+    bash lancerBorne.sh
+
+    # === 2. Revenir dans automatisation ===
+    cd "$SCRIPT_DIR" || exit 1
+
+    # === 3. Lancer la vérification Python ===
+    python3 "$SCRIPT_DIR/scripts/verif_deprecated.py"
+
+
 }
 
 print_summary() {

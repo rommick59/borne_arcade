@@ -3,7 +3,7 @@
 # Dossier du script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-LOG_DIR="$SCRIPT_DIR/log"
+LOG_DIR="$SCRIPT_DIR/logs"
 LOG_FILE="$LOG_DIR/compilation.log"
 WARN_FILE="$LOG_DIR/warnings_errors.log"
 

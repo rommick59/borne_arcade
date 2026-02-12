@@ -1,79 +1,144 @@
 #!/bin/bash
 
-echo "===== Vérification des dépendances système ====="
+set -e
 
-# Fonction pour comparer les versions
-version_greater_equal() {
-    # Retourne 0 si $1 >= $2
-    printf '%s\n%s\n' "$1" "$2" | sort -V -C
-}
+echo "===== Vérification des dépendances système ====="
 
 # Détecte l'architecture du Pi
 ARCH=$(dpkg --print-architecture)
 echo "Architecture détectée : $ARCH"
 
-# --- Vérification Java ---
-if command -v java >/dev/null 2>&1; then
-    CURRENT_VERSION=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}')
-    echo "Java est installé : version $CURRENT_VERSION"
+# ==========================================================
+# -------------------- JAVA SECTION ------------------------
+# ==========================================================
 
-    # Récupérer la dernière version LTS (Java 17) via Temurin
-    LATEST_VERSION=$(curl -s https://api.adoptium.net/v3/info/available_releases | grep -oP '(?<="most_recent_feature_release":)[0-9]+')
-    
-    if version_greater_equal "$CURRENT_VERSION" "$LATEST_VERSION"; then
-        echo "Java est déjà à jour (>= $LATEST_VERSION)"
+if command -v java >/dev/null 2>&1; then
+    CURRENT_JAVA=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}')
+    echo "Java déjà installé : version $CURRENT_JAVA"
+else
+    echo "Java non trouvé. Installation via apt..."
+    sudo apt update
+    sudo apt install -y default-jdk
+    INSTALLED_JAVA=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}')
+    echo "Java installé : version $INSTALLED_JAVA"
+fi
+
+# ==========================================================
+# ------------------- PYTHON SECTION -----------------------
+# ==========================================================
+
+# Récupère la dernière version stable de Python depuis python.org
+echo ""
+echo "===== Vérification de la version Python ====="
+
+LATEST_PYTHON=$(curl -s https://www.python.org/ftp/python/ \
+    | grep -oP '(?<=href=")[0-9]+\.[0-9]+\.[0-9]+(?=/)' \
+    | sort -V \
+    | tail -1)
+
+if [ -z "$LATEST_PYTHON" ]; then
+    echo "Impossible de récupérer la dernière version Python. Abandon."
+    exit 1
+fi
+
+echo "Dernière version Python disponible : $LATEST_PYTHON"
+
+# Vérifie la version Python actuellement installée
+if command -v python3 >/dev/null 2>&1; then
+    CURRENT_PYTHON=$(python3 --version 2>&1 | awk '{print $2}')
+    echo "Python3 actuellement installé : $CURRENT_PYTHON"
+
+    if [ "$CURRENT_PYTHON" = "$LATEST_PYTHON" ]; then
+        echo "Python3 est déjà à jour."
     else
-        read -p "Une version plus récente de Java est disponible ($LATEST_VERSION). Veux-tu la mettre à jour ? [y/N] " RESP
+        read -p "Mise à jour Python $CURRENT_PYTHON -> $LATEST_PYTHON ? [y/N] " RESP
         if [[ "$RESP" =~ ^[Yy]$ ]]; then
-            echo "Mise à jour de Java..."
-            sudo apt update
-            sudo apt install -y wget gnupg software-properties-common
-            wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | sudo gpg --dearmor -o /usr/share/keyrings/adoptium.gpg
-            echo "deb [signed-by=/usr/share/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/adoptium.list
-            sudo apt update
-            if [[ "$ARCH" == "arm64" ]]; then
-                sudo apt install -y temurin-17-jdk:arm64
-            else
-                sudo apt install -y temurin-17-jdk:armhf
-            fi
-            echo "Java mis à jour !"
+            COMPILE_PYTHON=true
+        else
+            echo "Mise à jour Python ignorée."
+            COMPILE_PYTHON=false
         fi
     fi
 else
-    echo "Java non trouvé. Installation de la dernière version stable..."
-    sudo apt update
-    sudo apt install -y wget gnupg software-properties-common
-    wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | sudo gpg --dearmor -o /usr/share/keyrings/adoptium.gpg
-    echo "deb [signed-by=/usr/share/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/adoptium.list
-    sudo apt update
-    if [[ "$ARCH" == "arm64" ]]; then
-        sudo apt install -y temurin-17-jdk:arm64
-    else
-        sudo apt install -y temurin-17-jdk:armhf
-    fi
-    echo "Java installé !"
+    echo "Python3 non trouvé. Installation depuis les sources..."
+    COMPILE_PYTHON=true
 fi
 
-# --- Vérification Python3 ---
-if command -v python3 >/dev/null 2>&1; then
-    echo "Python3 est déjà installé : $(python3 --version)"
-else
-    echo "Python3 non trouvé. Installation..."
+if [ "${COMPILE_PYTHON:-false}" = true ]; then
+    echo ""
+    echo "===== Compilation de Python $LATEST_PYTHON depuis les sources ====="
+
+    # Dépendances nécessaires à la compilation
     sudo apt update
-    sudo apt install -y python3 python3-pip
+    sudo apt install -y \
+        build-essential \
+        libssl-dev \
+        libffi-dev \
+        zlib1g-dev \
+        libbz2-dev \
+        libreadline-dev \
+        libsqlite3-dev \
+        libncurses5-dev \
+        libgdbm-dev \
+        liblzma-dev \
+        uuid-dev \
+        wget
+
+    PYTHON_TAR="Python-${LATEST_PYTHON}.tgz"
+    PYTHON_URL="https://www.python.org/ftp/python/${LATEST_PYTHON}/${PYTHON_TAR}"
+    TEMP_DIR="/tmp/python_build"
+
+    mkdir -p "$TEMP_DIR"
+    cd "$TEMP_DIR"
+
+    echo "Téléchargement de $PYTHON_URL ..."
+    wget -q --show-progress "$PYTHON_URL"
+
+    echo "Extraction..."
+    tar -xf "$PYTHON_TAR"
+    cd "Python-${LATEST_PYTHON}"
+
+    echo "Configuration... (peut prendre quelques minutes sur Raspberry Pi)"
+    ./configure --enable-optimizations --prefix=/usr/local
+
+    echo "Compilation... (peut prendre 10-20 min sur Raspberry Pi)"
+    make -j$(nproc)
+
+    echo "Installation..."
+    sudo make altinstall
+
+    # Crée un lien symbolique vers python3
+    PYTHON_SHORT=$(echo "$LATEST_PYTHON" | cut -d. -f1,2)
+    sudo ln -sf "/usr/local/bin/python${PYTHON_SHORT}" /usr/local/bin/python3
+    sudo ln -sf "/usr/local/bin/pip${PYTHON_SHORT}" /usr/local/bin/pip3
+
+    echo "Nettoyage..."
+    cd /
+    rm -rf "$TEMP_DIR"
+
+    echo "Python $LATEST_PYTHON installé avec succès !"
+    python3 --version
 fi
 
+# ==========================================================
+# -------------------- MG2D SECTION ------------------------
+# ==========================================================
+
+echo ""
 echo "===== INSTALLATION MG2D ====="
 
-# Définition variables
 REPO_URL="https://github.com/synave/MG2D.git"
 TEMP_DIR="/tmp/MG2D_install"
 TARGET_DIR="$HOME/MG2D"
 
-# Vérifier si MG2D est déjà installé
 if [ -d "$TARGET_DIR" ]; then
     echo "MG2D est déjà présent dans $TARGET_DIR"
 else
+    if ! command -v git >/dev/null 2>&1; then
+        echo "git non trouvé. Installation..."
+        sudo apt install -y git
+    fi
+
     echo "Clonage du dépôt..."
     rm -rf "$TEMP_DIR"
     git clone "$REPO_URL" "$TEMP_DIR"
@@ -89,7 +154,10 @@ else
     echo "Nettoyage..."
     rm -rf "$TEMP_DIR"
 
-    echo "===== MG2D INSTALLÉ AVEC SUCCÈS ====="
+    echo "MG2D installé avec succès dans $TARGET_DIR"
 fi
 
+echo ""
 echo "===== SCRIPT TERMINÉ ====="
+echo "Java    : $(java -version 2>&1 | awk -F '"' '/version/ {print $2}')"
+echo "Python3 : $(python3 --version)"

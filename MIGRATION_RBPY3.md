@@ -1,757 +1,853 @@
-# Guide de Migration : Rasbian 2017 → RBpy3-RBPyOS
+# 🎮 Tutoriel Complet : Migration vers RBpy3-RBPyOS
 
-**Date de création :** 12 février 2026  
-**Projet :** Borne d'arcade IUT du Littoral Côte d'Opale  
-**Type de migration :** Remplacement complet du système d'exploitation
+**Guide de migration de A à Z pour borne d'arcade Raspberry Pi**
 
----
-
-## 📋 Table des matières
-
-1. [Préparation et sauvegarde](#1-préparation-et-sauvegarde)
-2. [Matériel nécessaire](#2-matériel-nécessaire)
-3. [Sauvegarde des données critiques](#3-sauvegarde-des-données-critiques)
-4. [Installation de RBpy3-RBPyOS](#4-installation-de-rbpy3-rbpyos)
-5. [Configuration initiale du système](#5-configuration-initiale-du-système)
-6. [Restauration du projet borne arcade](#6-restauration-du-projet-borne-arcade)
-7. [Installation des dépendances](#7-installation-des-dépendances)
-8. [Configuration du clavier personnalisé](#8-configuration-du-clavier-personnalisé)
-9. [Configuration de l'autostart](#9-configuration-de-lautostart)
-10. [Tests et validation](#10-tests-et-validation)
-11. [Dépannage](#11-dépannage)
-
----
-
-## 1. Préparation et sauvegarde
-
-### 1.1 Évaluation de l'ancien système
-
-Avant de commencer, identifiez ce qui doit être sauvegardé :
-
-```bash
-# Sur l'ancien Rasbian 2017, listez vos applications
-dpkg --get-selections > ~/installed_packages.txt
-
-# Vérifiez la version actuelle
-cat /etc/os-release
-uname -a
-
-# Notez votre configuration réseau
-ip addr show
-cat /etc/network/interfaces
+```
+┌─────────────────────────────────────────────────────────┐
+│  Rasbian 2017  ────────────►  RBpy3-RBPyOS              │
+│  (Ancien système)           (Nouveau système)           │
+└─────────────────────────────────────────────────────────┘
 ```
 
-### 1.2 Créer un inventaire du matériel
-
-- **Raspberry Pi :** Modèle 3 (ou supérieur)
-- **Écran :** 4:3, résolution 1280x1024
-- **Contrôleurs :** 2 joysticks + 12 boutons (6×2)
-- **Carte SD :** Minimum 16 Go (32 Go recommandé)
-- **Périphériques USB :** Clavier, souris (pour l'installation)
+**Projet :** Borne d'arcade IUT du Littoral Côte d'Opale  
+**Date :** 12 février 2026  
+**Durée estimée :** 2-3 heures  
+**Niveau :** Débutant à intermédiaire
 
 ---
 
-## 2. Matériel nécessaire
+## 📖 Introduction
 
-### Liste de matériel pour la migration
+Ce tutoriel vous guide pas à pas pour **migrer votre borne d'arcade** d'un ancien système Rasbian 2017 vers le nouveau système **RBpy3-RBPyOS**. Que vous soyez débutant ou expérimenté, suivez simplement les étapes dans l'ordre.
 
-- ✅ Carte SD neuve (32 Go, classe 10 ou supérieur)
-- ✅ Lecteur de carte SD pour PC
-- ✅ Clé USB (pour sauvegarde temporaire si besoin)
-- ✅ Clavier et souris USB standard
-- ✅ Connexion Internet (Ethernet recommandé)
-- ✅ PC avec accès Internet (pour télécharger l'OS)
+### 🎯 Ce que vous allez accomplir :
 
-### Logiciels nécessaires sur votre PC
+1. ✅ Sauvegarder votre système actuel (jeux, scores, configurations)
+2. ✅ Installer le nouveau système d'exploitation RBpy3-RBPyOS
+3. ✅ Configurer le Raspberry Pi (résolution, clavier, réseau)
+4. ✅ Restaurer votre projet borne d'arcade
+5. ✅ Installer toutes les dépendances (Java, Python, Lua, MG2D)
+6. ✅ Tester et valider le fonctionnement complet
+7. ✅ Configurer le démarrage automatique de la borne
 
-- **Raspberry Pi Imager** (https://www.raspberrypi.com/software/)
-- **Balena Etcher** (alternative : https://www.balena.io/etcher/)
-- **Client SSH** (optionnel : PuTTY sur Windows, natif sur Linux/Mac)
+### ⚠️ Attention
+
+- **Opération irréversible** : L'installation effacera la carte SD
+- **Sauvegardez tout** : Jeux, highscores, configurations
+- **Prévoyez du temps** : Environ 2-3 heures pour une migration complète
+- **Testez avant** : Vérifiez le bon fonctionnement avant de déployer
 
 ---
 
-## 3. Sauvegarde des données critiques
+## 📋 Table des Matières
 
-### 3.1 Sauvegarde sur l'ancien système
+### PARTIE 1 : PRÉPARATION (30 min)
+1. [Matériel et prérequis](#partie-1--préparation)
+2. [Sauvegarde de l'ancien système](#étape-1--sauvegarder-lancien-système)
 
-**🚀 MÉTHODE AUTOMATISÉE (RECOMMANDÉE)**
+### PARTIE 2 : INSTALLATION (45 min)
+3. [Téléchargement de RBpy3-RBPyOS](#étape-2--télécharger-rbpy3-rbpyos)
+4. [Création de la carte SD](#étape-3--créer-la-carte-sd-bootable)
+5. [Premier démarrage](#étape-4--premier-démarrage-du-système)
 
-Un script d'automatisation complet est disponible dans le projet :
+### PARTIE 3 : CONFIGURATION (60 min)
+6. [Configuration système de base](#étape-5--configuration-système-de-base)
+7. [Restauration du projet](#étape-6--restaurer-le-projet-borne-arcade)
+8. [Installation des dépendances](#étape-7--installer-les-dépendances)
+9. [Configuration du clavier arcade](#étape-8--configurer-le-clavier-personnalisé)
+
+### PARTIE 4 : FINALISATION (30 min)
+10. [Configuration de l'autostart](#étape-9--configurer-le-démarrage-automatique)
+11. [Tests et validation](#étape-10--tester-et-valider)
+12. [Dépannage](#dépannage)
+
+---
+
+# PARTIE 1 : PRÉPARATION
+
+## 🛠️ Matériel nécessaire
+
+### Hardware requis
+
+| Composant | Spécification | Obligatoire |
+|-----------|--------------|-------------|
+| **Raspberry Pi** | Modèle 3B, 3B+ ou 4 | ✅ |
+| **Carte SD** | 32 Go minimum, Classe 10 | ✅ |
+| **Lecteur carte SD** | USB pour PC | ✅ |
+| **Clé USB** | Pour sauvegarde (8 Go min) | ⭐ Recommandé |
+| **Clavier USB** | Standard (pour config) | ✅ |
+| **Souris USB** | Standard (pour config) | ✅ |
+| **Câble Ethernet** | Connexion réseau stable | ⭐ Recommandé |
+| **Écran** | 1280x1024 (4:3) | ✅ |
+
+### Software requis sur votre PC
+
+| Logiciel | Utilisation | Téléchargement |
+|----------|-------------|----------------|
+| **Raspberry Pi Imager** | Flasher la carte SD | https://www.raspberrypi.com/software/ |
+| **Balena Etcher** | Alternative au Imager | https://www.balena.io/etcher/ |
+| **Client SSH** | Accès distant (optionnel) | Natif Linux/Mac, PuTTY Windows |
+
+---
+
+## ÉTAPE 1 : Sauvegarder l'ancien système
+
+> ⏱️ **Durée : 15-20 minutes**  
+> 📍 **Localisation : Sur votre ancien Raspberry Pi (Rasbian 2017)**
+
+### Option A : Sauvegarde automatique (RECOMMANDÉ) 🚀
+
+Si le dossier `automatisation/` existe déjà sur votre système :
 
 ```bash
+# Se connecter au Raspberry Pi actuel
+ssh pi@<adresse_ip_actuelle>
+
+# Aller dans le dossier automatisation
 cd ~/git/borne_arcade/automatisation
 
 # Rendre le script exécutable
 chmod +x 01_backup_ancien_systeme.sh
 
-# Lancer la sauvegarde automatique
+# Lancer la sauvegarde complète
 ./01_backup_ancien_systeme.sh
 ```
 
-Ce script sauvegarde automatiquement :
-- ✅ Projet borne_arcade complet
+**Le script sauvegarde automatiquement :**
+- ✅ Projet complet borne_arcade
 - ✅ Bibliothèque MG2D
-- ✅ Tous les highscores de jeux
-- ✅ Fichier de mapping clavier personnalisé
-- ✅ Configurations système (.bashrc, .profile)
-- ✅ Informations système détaillées
-- ✅ Liste des paquets Python installés
+- ✅ Tous les highscores
+- ✅ Configuration clavier personnalisé (fichier `borne`)
+- ✅ Fichiers système (.bashrc, .profile)
+- ✅ Liste des paquets installés
 
-**Méthode manuelle (si nécessaire)**
+📁 **Résultat** : Fichier `backup_migration_complete.tar.gz` dans `/home/pi/`
 
-Connectez-vous à votre Raspberry Pi actuel et effectuez les sauvegardes suivantes :
+### Option B : Sauvegarde manuelle
+
+Si vous n'avez pas les scripts ou préférez faire manuellement :
 
 ```bash
-# Créer un répertoire de sauvegarde
+# 1. Créer un répertoire de sauvegarde
 mkdir -p ~/backup_migration
 cd ~/backup_migration
 
-# 1. Sauvegarder le projet borne arcade
+# 2. Sauvegarder le projet borne arcade
+echo "Sauvegarde du projet..."
 tar -czf borne_arcade_backup.tar.gz ~/git/borne_arcade/
 
-# 2. Sauvegarder MG2D
+# 3. Sauvegarder MG2D
+echo "Sauvegarde de MG2D..."
 tar -czf MG2D_backup.tar.gz ~/MG2D/
 
-# 3. Sauvegarder les configurations système importantes
+# 4. Sauvegarder les configurations
+echo "Sauvegarde des configurations..."
 cp ~/.bashrc bashrc_backup
 cp ~/.profile profile_backup
-cp /etc/X11/xorg.conf xorg_backup 2>/dev/null || echo "Pas de xorg.conf"
 
-# 4. Sauvegarder le fichier de mapping clavier personnalisé
-sudo cp -r /usr/share/X11/xkb/symbols/borne xkb_borne_backup 2>/dev/null || echo "Fichier borne non trouvé"
+# 5. Sauvegarder le clavier personnalisé
+echo "Sauvegarde du clavier arcade..."
+sudo cp /usr/share/X11/xkb/symbols/borne xkb_borne_backup 2>/dev/null || echo "Fichier borne non trouvé"
 
-# 5. Sauvegarder les highscores
+# 6. Sauvegarder les highscores
+echo "Sauvegarde des highscores..."
 mkdir -p highscores_backup
-find ~/git/borne_arcade/projet/ -name "highscore" -exec cp {} highscores_backup/ \;
+find ~/git/borne_arcade/projet/ -name "highscore" -exec cp {} highscores_backup/ \; 2>/dev/null
 
-# 6. Créer un fichier d'informations système
-echo "=== Informations système ===" > system_info.txt
+# 7. Informations système
+echo "Collecte des informations système..."
+echo "=== OS ===" > system_info.txt
 cat /etc/os-release >> system_info.txt
-echo -e "\n=== Version Java ===" >> system_info.txt
+echo -e "\n=== Java ===" >> system_info.txt
 java -version 2>> system_info.txt
-echo -e "\n=== Paquets installés ===" >> system_info.txt
-dpkg -l >> system_info.txt
+echo -e "\n=== Python ===" >> system_info.txt
+python3 --version >> system_info.txt
 
-# Compresser le tout
+# 8. Tout compresser ensemble
 cd ~
 tar -czf backup_migration_complete.tar.gz backup_migration/
 
-# Vérifier la taille
+# 9. Vérifier
+echo "✓ Sauvegarde créée :"
 ls -lh backup_migration_complete.tar.gz
 ```
 
-### 3.2 Transfert de la sauvegarde
+### Transférer la sauvegarde sur votre PC
 
-**Option A : Clé USB**
+**Méthode 1 : Via clé USB**
+
 ```bash
-# Identifier votre clé USB
+# 1. Insérer la clé USB dans le Raspberry Pi
+# 2. Identifier la clé
 lsblk
+# Exemple de sortie : sda1 (votre clé USB)
 
-# Monter la clé (remplacer sdX1 par votre périphérique)
-sudo mount /dev/sdX1 /mnt
+# 3. Monter la clé
+sudo mkdir -p /mnt/usb
+sudo mount /dev/sda1 /mnt/usb
 
-# Copier la sauvegarde
-cp ~/backup_migration_complete.tar.gz /mnt/
+# 4. Copier la sauvegarde
+cp ~/backup_migration_complete.tar.gz /mnt/usb/
+sync
 
-# Démonter proprement
-sudo umount /mnt
+# 5. Démonter proprement
+sudo umount /mnt/usb
+
+# 6. Retirer la clé USB
 ```
 
-**Option B : Réseau (SCP/SFTP)**
+**Méthode 2 : Via réseau (SCP)**
+
 ```bash
-# Sur votre PC, récupérer la sauvegarde
-scp pi@<ip_raspberry>:~/backup_migration_complete.tar.gz ./
+# Sur votre PC Linux/Mac
+scp pi@<adresse_ip>:~/backup_migration_complete.tar.gz ~/
+
+# Sur Windows avec WinSCP
+# Utiliser l'interface graphique WinSCP
 ```
 
-**Option C : Cloud/Git**
+**Méthode 3 : Via Git (si dépôt à jour)**
+
 ```bash
-# Si vous avez un dépôt Git privé
 cd ~/git/borne_arcade
+git status
 git add .
-git commit -m "Backup avant migration vers RBpy3-RBPyOS"
+git commit -m "Backup avant migration RBpy3-RBPyOS - $(date +%Y%m%d)"
 git push
 ```
 
+✅ **Point de contrôle** : Vous avez maintenant une sauvegarde complète sur votre PC ou clé USB
+
 ---
 
-## 4. Installation de RBpy3-RBPyOS
+# PARTIE 2 : INSTALLATION
 
-### 4.1 Téléchargement de l'image RBpy3-RBPyOS
+## ÉTAPE 2 : Télécharger RBpy3-RBPyOS
 
-1. **Télécharger l'image officielle**
-   - Site officiel : [URL de RBpy3-RBPyOS - à adapter selon la source réelle]
-   - Vérifier la somme de contrôle (SHA256) du fichier téléchargé
+> ⏱️ **Durée : 10-15 minutes** (selon vitesse Internet)  
+> 📍 **Localisation : Sur votre PC**
+
+### Téléchargement de l'image
 
 ```bash
 # Sur votre PC Linux
-sha256sum rbpy3-rbpyos-latest.img.xz
-# Comparer avec la somme fournie sur le site officiel
+cd ~/Téléchargements/
+
+# Télécharger l'image (adapter l'URL selon votre source)
+wget https://example.com/rbpy3-rbpyos-latest.img.xz
+
+# Alternative si téléchargement manuel depuis navigateur
+# Déplacer le fichier dans ~/Téléchargements/
 ```
 
-### 4.2 Préparation de la carte SD
+> ⚠️ **Note importante** : RBpy3-RBPyOS est un système spécifique. Si vous n'avez pas accès à cette image :
+> 
+> **Alternative officielle :**
+> ```bash
+> # Télécharger Raspberry Pi OS Lite (Debian Bookworm)
+> wget https://downloads.raspberrypi.org/raspios_lite_armhf/images/raspios_lite_armhf-2024-XX-XX/2024-XX-XX-raspios-bookworm-armhf-lite.img.xz
+> ```
 
-**Sur Linux :**
+### Vérifier l'intégrité du fichier (recommandé)
 
 ```bash
-# 1. Identifier votre carte SD
-lsblk
-# Exemple de sortie : sdb (votre carte SD - ATTENTION à bien identifier)
+# Calculer le checksum SHA256
+sha256sum rbpy3-rbpyos-latest.img.xz
 
-# 2. Démonter tous les partitions de la carte
+# Comparer avec celui fourni sur le site de téléchargement
+# Les valeurs doivent correspondre exactement
+```
+
+✅ **Point de contrôle** : Fichier image téléchargé et vérifié
+
+---
+
+## ÉTAPE 3 : Créer la carte SD bootable
+
+> ⏱️ **Durée : 15-20 minutes**  
+> 📍 **Localisation : Sur votre PC**
+
+### Méthode A : Avec Raspberry Pi Imager (RECOMMANDÉ) 🎯
+
+**Installation de Raspberry Pi Imager**
+
+```bash
+# Sur Ubuntu/Debian
+sudo apt install rpi-imager
+
+# Sur Fedora
+sudo dnf install rpi-imager
+
+# Sur Arch Linux
+sudo pacman -S rpi-imager
+```
+
+**Utilisation**
+
+1. **Lancer le programme**
+   ```bash
+   rpi-imager
+   ```
+
+2. **Dans l'interface graphique :**
+   - **CHOOSE OS** → "Use custom" → Sélectionner `rbpy3-rbpyos-latest.img.xz`
+   - **CHOOSE STORAGE** → Sélectionner votre carte SD (ex: 32 GB SD Card)
+   
+3. **Cliquer sur l'icône ⚙️ (paramètres avancés)**
+   
+   **Configurer les options :**
+   ```
+   ✅ Set hostname : borne-arcade
+   ✅ Enable SSH : ✓ Use password authentication
+   ✅ Set username and password
+      Username: pi
+      Password: [votre_mot_de_passe]
+   ✅ Configure wireless LAN (si besoin)
+      SSID: [votre_wifi]
+      Password: [mot_de_passe_wifi]
+      Country: FR
+   ✅ Set locale settings
+      Time zone: Europe/Paris
+      Keyboard layout: fr
+   ```
+
+4. **WRITE** → Confirmer → Attendre la fin (~10-15 min)
+
+5. **Vérification** → "Write Successful" → CONTINUE
+
+### Méthode B : Avec ligne de commande (utilisateurs avancés)
+
+```bash
+# 1. Insérer la carte SD
+# 2. Identifier la carte
+lsblk
+# Exemple de sortie :
+# sdb           8:16   1  29.7G  0 disk 
+# └─sdb1        8:17   1  29.7G  0 part 
+
+# ⚠️ ATTENTION : Vérifiez bien que c'est votre carte SD !
+# Remplacer /dev/sdX par votre appareil
+
+# 3. Démonter toutes les partitions
 sudo umount /dev/sdb*
 
-# 3. Flasher l'image (méthode 1 : avec dd)
-sudo dd if=rbpy3-rbpyos-latest.img bs=4M status=progress of=/dev/sdb conv=fsync
-# ⚠️ ATTENTION : Vérifiez bien que /dev/sdb est votre carte SD !
+# 4. Flasher l'image
+sudo dd if=rbpy3-rbpyos-latest.img.xz bs=4M status=progress of=/dev/sdb conv=fsync
 
-# 4. Synchroniser
+# 5. Synchroniser
 sync
 ```
 
-**Méthode alternative avec Raspberry Pi Imager (recommandé) :**
-
-```bash
-# Installer Raspberry Pi Imager
-sudo apt install rpi-imager
-
-# Lancer l'interface graphique
-rpi-imager
-```
-
-Dans l'interface :
-1. **Choose OS** → "Use custom" → Sélectionner `rbpy3-rbpyos-latest.img`
-2. **Choose Storage** → Sélectionner votre carte SD
-3. Cliquer sur l'icône ⚙️ (paramètres avancés)
-4. Configurer :
-   - ✅ Enable SSH
-   - ✅ Set username and password (ex: `pi` / `raspberry`)
-   - ✅ Configure WiFi (optionnel)
-   - ✅ Set locale settings (Europe/Paris, fr)
-5. **Write**
-
-### 4.3 Première montage de la carte SD (configuration pré-boot)
-
-Avant d'insérer la carte dans le Raspberry Pi, vous pouvez activer SSH :
+### Configuration pré-boot (si SSH non activé avec Imager)
 
 ```bash
 # Remonter la partition boot
-mkdir -p /tmp/boot_mount
-sudo mount /dev/sdb1 /tmp/boot_mount
+sudo mkdir -p /mnt/boot
+sudo mount /dev/sdb1 /mnt/boot
 
-# Activer SSH (créer un fichier vide nommé "ssh")
-sudo touch /tmp/boot_mount/ssh
+# Activer SSH
+sudo touch /mnt/boot/ssh
 
 # Configuration WiFi (optionnel)
-sudo nano /tmp/boot_mount/wpa_supplicant.conf
+sudo nano /mnt/boot/wpa_supplicant.conf
 ```
 
 Contenu de `wpa_supplicant.conf` :
-```
+```ini
 country=FR
 ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 update_config=1
 
 network={
-    ssid="VotreSSID"
-    psk="VotreMotDePasse"
+    ssid="NomDeVotreWiFi"
+    psk="MotDePasseWiFi"
     key_mgmt=WPA-PSK
 }
 ```
 
 ```bash
 # Démonter
-sudo umount /tmp/boot_mount
+sudo umount /mnt/boot
 ```
+
+✅ **Point de contrôle** : Carte SD prête avec RBpy3-RBPyOS installé
 
 ---
 
-## 5. Configuration initiale du système
+## ÉTAPE 4 : Premier démarrage du système
 
-### 5.1 Premier démarrage
+> ⏱️ **Durée : 5-10 minutes**  
+> 📍 **Localisation : Raspberry Pi**
 
-1. Insérer la carte SD dans le Raspberry Pi
-2. Connecter écran, clavier, souris, Ethernet
-3. Brancher l'alimentation
+### Branchements
 
-Le système devrait démarrer et vous présenter l'écran de connexion.
+1. **Retirer la carte SD** de votre PC
+2. **Insérer la carte SD** dans le Raspberry Pi
+3. **Brancher** dans l'ordre :
+   - ✅ Câble HDMI → Écran
+   - ✅ Clavier USB
+   - ✅ Souris USB (optionnel)
+   - ✅ Câble Ethernet (recommandé pour première config)
+   - ✅ **Alimentation** (en dernier)
 
-### 5.2 Connexion initiale
+### Démarrage
 
-**Connexion locale :**
-- Utilisateur : `pi` (ou celui configuré)
-- Mot de passe : `raspberry` (ou celui configuré)
-
-**Connexion SSH (optionnel) :**
-```bash
-# Sur votre PC, trouver l'IP du Raspberry
-nmap -sn 192.168.1.0/24 | grep -B 2 "Raspberry"
-
-# Se connecter
-ssh pi@<adresse_ip>
+```
+┌─────────────────────────────────────┐
+│  Le Raspberry Pi démarre...         │
+│  Texte défile à l'écran...          │
+│  Attendre 1-2 minutes               │
+└─────────────────────────────────────┘
 ```
 
-### 5.3 Configuration de base avec raspi-config
+### Connexion
+
+**Si autologin activé** : Vous arrivez directement au bureau ou terminal
+
+**Sinon** :
+```
+Login: pi
+Password: [votre_mot_de_passe]
+```
+
+### Trouver l'adresse IP (si connexion SSH souhaitée)
+
+```bash
+# Sur le Raspberry Pi directement
+hostname -I
+
+# Ou depuis votre PC (scan réseau)
+nmap -sn 192.168.1.0/24 | grep -B 2 "Raspberry"
+```
+
+✅ **Point de contrôle** : Système démarré, vous êtes connecté
+
+---
+
+# PARTIE 3 : CONFIGURATION
+
+## ÉTAPE 5 : Configuration système de base
+
+> ⏱️ **Durée : 20-30 minutes**  
+> 📍 **Localisation : Raspberry Pi (local ou SSH)**
+
+### Configuration avec raspi-config
 
 ```bash
 sudo raspi-config
 ```
 
-**Configuration recommandée :**
+**Naviguer avec les flèches → Entrée pour valider**
 
-1. **System Options**
-   - **S3 Password** : Changer le mot de passe par défaut
-   - **S4 Hostname** : Nommer votre Pi (ex: `borne-arcade`)
-   - **S5 Boot / Auto Login** : Choisir "Console Autologin" ou "Desktop Autologin"
+### Configuration étape par étape
 
-2. **Display Options**
-   - **D1 Resolution** : Choisir 1280×1024 (ou DMT Mode 32)
-   - **D3 Screen Blanking** : Désactiver pour la borne
+#### 1️⃣ **System Options** (S)
 
-3. **Interface Options**
-   - **I2 SSH** : Activer (si pas déjà fait)
+```
+S3 Password          → Changer le mot de passe (sécurité)
+S4 Hostname          → "borne-arcade" (identification)
+S5 Boot / Auto Login → "Console Autologin" ou "Desktop Autologin"
+   ↪ Console Autologin = démarrage en terminal automatique
+   ↪ Desktop Autologin = démarrage interface graphique automatique
+```
 
-4. **Localization Options**
-   - **L1 Locale** : `fr_FR.UTF-8 UTF-8`
-   - **L2 Timezone** : Europe/Paris
-   - **L3 Keyboard** : Generic 105-key PC → French → Default
-   - **L4 WLAN Country** : FR
+#### 2️⃣ **Display Options** (D)
 
-5. **Advanced Options**
-   - **A1 Expand Filesystem** : Oui (utiliser toute la carte SD)
-   - **A3 Memory Split** : 256 Mo (pour les graphiques)
+```
+D1 Resolution    → DMT Mode 32 (1280x1024 @ 60Hz)
+                    ou DMT Mode 35 (1280x1024 @ 75Hz)
+D3 Screen Blanking → No (désactiver veille écran pour borne)
+```
 
-6. **Finish** → Reboot
+#### 3️⃣ **Interface Options** (I)
 
-### 5.4 Mise à jour du système
+```
+I2 SSH → Yes (activer SSH pour accès distant)
+```
+
+#### 4️⃣ **Localization Options** (L)
+
+```
+L1 Locale    → fr_FR.UTF-8 UTF-8 (cocher)
+                Définir fr_FR.UTF-8 par défaut
+L2 Timezone  → Europe/Paris
+L3 Keyboard  → Generic 105-key PC → French → Default
+L4 WLAN Country → FR (même si Ethernet utilisé)
+```
+
+#### 5️⃣ **Advanced Options** (A)
+
+```
+A1 Expand Filesystem → Yes (utiliser toute la carte SD)
+A3 Memory Split      → 256 (allouer mémoire GPU pour graphismes)
+```
+
+#### 6️⃣ **Finish** → **Yes** (redémarrer)
 
 ```bash
-# Mise à jour complète
+# Le système redémarre automatiquement
+# Attendre 30 secondes
+```
+
+### Mise à jour complète du système
+
+```bash
+# Reconnexion après redémarrage
+ssh pi@<adresse_ip>
+# ou directement sur le Pi
+
+# Mise à jour de la liste des paquets
 sudo apt update
+
+# Mise à jour de tous les paquets (peut prendre 10-20 min)
 sudo apt full-upgrade -y
 
-# Installation des outils de base
-sudo apt install -y vim git curl wget htop
+# Installation outils de base
+sudo apt install -y git vim curl wget htop tree
 
-# Redémarrage
+# Nettoyage
+sudo apt autoremove -y
+sudo apt clean
+
+# Redémarrage final
 sudo reboot
 ```
 
+✅ **Point de contrôle** : Système configuré, à jour et redémarré
+
 ---
 
-## 6. Restauration du projet borne arcade
+## ÉTAPE 6 : Restaurer le projet borne arcade
 
-### 6.1 Restauration depuis la sauvegarde
+> ⏱️ **Durée : 10-15 minutes**  
+> 📍 **Localisation : Raspberry Pi**
 
-**🚀 MÉTHODE AUTOMATISÉE (RECOMMANDÉE)**
+### Transférer la sauvegarde vers le nouveau système
 
-```bash
-# Copier d'abord l'archive de sauvegarde sur le nouveau système
-# (via clé USB, SCP, ou autre)
-
-cd ~/git/borne_arcade/automatisation  # ou créer le dossier si besoin
-
-# Rendre le script exécutable
-chmod +x 02_restauration_nouveau_systeme.sh
-
-# Lancer la restauration
-./02_restauration_nouveau_systeme.sh
-```
-
-Le script va automatiquement :
-- 🔍 Trouver l'archive de sauvegarde
-- 📦 Extraire tous les fichiers
-- 📁 Recréer la structure des répertoires
-- 🎮 Restaurer tous les jeux et highscores
-- ⌨️ Installer le fichier de clavier personnalisé
-- ✅ Configurer l'autostart
-
-**Méthode manuelle**
-
-**Option A : Depuis la clé USB**
+**Méthode 1 : Via clé USB**
 
 ```bash
-# Monter la clé USB
-sudo mount /dev/sda1 /mnt
+# 1. Insérer la clé USB contenant backup_migration_complete.tar.gz
+# 2. Identifier la clé
+lsblk
 
-# Copier la sauvegarde
-cp /mnt/backup_migration_complete.tar.gz ~/
+# 3. Monter
+sudo mkdir -p /mnt/usb
+sudo mount /dev/sda1 /mnt/usb
 
-# Démonter
-sudo umount /mnt
+# 4. Copier vers home
+cp /mnt/usb/backup_migration_complete.tar.gz ~/
 
-# Extraire
-cd ~
-tar -xzf backup_migration_complete.tar.gz
+# 5. Démonter
+sudo umount /mnt/usb
 ```
 
-**Option B : Depuis votre PC via SCP**
+**Méthode 2 : Via SCP depuis votre PC**
 
 ```bash
 # Sur votre PC
-scp backup_migration_complete.tar.gz pi@<ip_raspberry>:~/
+scp backup_migration_complete.tar.gz pi@<adresse_ip_rpi>:~/
 
-# Sur le Raspberry Pi
-cd ~
-tar -xzf backup_migration_complete.tar.gz
+# Attendre transfert (peut prendre quelques minutes selon taille)
 ```
 
-### 6.2 Recréer la structure des répertoires
+**Méthode 3 : Via Git (si vous aviez push)**
 
 ```bash
-# Créer la structure git comme dans l'ancien système
+# Configurer Git
+git config --global user.name "Votre Nom"
+git config --global user.email "votre@email.com"
+
+# Cloner le projet
 mkdir -p ~/git
 cd ~/git
+git clone https://github.com/votre-compte/borne_arcade.git
+# ou votre URL Git IUT
+
+# Cloner MG2D
+git clone https://github.com/synave/MG2D.git ~/MG2D
+```
+
+### Extraire la sauvegarde (si méthode archive)
+
+```bash
+# Se placer dans home
+cd ~
+
+# Extraire l'archive
+tar -xzf backup_migration_complete.tar.gz
+
+# Vérifier le contenu
+ls -la backup_migration/
 
 # Restaurer borne_arcade
-tar -xzf ~/backup_migration/borne_arcade_backup.tar.gz -C ~/
-mv ~/git/borne_arcade ~/git/borne_arcade_backup_old 2>/dev/null || true
-mv ~/home/pi/git/borne_arcade ~/git/ 2>/dev/null || mv ~/git/borne_arcade ~/git/
+mkdir -p ~/git
+tar -xzf backup_migration/borne_arcade_backup.tar.gz
+mv git/borne_arcade ~/git/ 2>/dev/null || echo "Déjà au bon endroit"
 
-# Restaurer MG2D (si sauvegardé)
-tar -xzf ~/backup_migration/MG2D_backup.tar.gz -C ~/
+# Restaurer MG2D
+tar -xzf backup_migration/MG2D_backup.tar.gz
+mv MG2D ~/MG2D 2>/dev/null || echo "Déjà au bon endroit"
 
 # Vérifier la structure
-ls -la ~/git/
+echo "=== Structure restaurée ==="
+ls -la ~/git/borne_arcade/
 ls -la ~/MG2D/
 ```
 
-**Option alternative : Clonage depuis Git (recommandé si vos dépôts sont à jour)**
+### Restaurer les highscores
 
 ```bash
-mkdir -p ~/git
-cd ~/git
+# Restaurer tous les highscores
+cd ~/backup_migration/highscores_backup/
 
-# Cloner MG2D
-git clone https://github.com/synave/MG2D.git
-
-# Cloner borne_arcade (adapter l'URL selon votre dépôt)
-git clone http://iut.univ-littoral.fr/gitlab/synave/borne_arcade.git
-
-# Ou votre fork
-# git clone https://github.com/votre-compte/borne_arcade.git
+# Copier vers chaque jeu
+for game_dir in ~/git/borne_arcade/projet/*/; do
+    game_name=$(basename "$game_dir")
+    if [ -f "highscore_${game_name}" ]; then
+        cp "highscore_${game_name}" "${game_dir}highscore"
+        echo "✓ Highscore restauré pour $game_name"
+    fi
+done
 ```
 
-### 6.3 Restaurer les highscores
-
-```bash
-# Copier les anciens highscores
-cp ~/backup_migration/highscores_backup/* ~/git/borne_arcade/projet/*/highscore 2>/dev/null || echo "Highscores à restaurer manuellement"
-
-# Ou manuellement pour chaque jeu
-# cp ~/backup_migration/highscores_backup/highscore_columns ~/git/borne_arcade/projet/Columns/highscore
-```
+✅ **Point de contrôle** : Projet et MG2D restaurés, highscores récupérés
 
 ---
 
-## 7. Installation des dépendances
+## ÉTAPE 7 : Installer les dépendances
 
-### 7.1 Utilisation du script d'installation automatique
+> ⏱️ **Durée : 30-40 minutes**  
+> 📍 **Localisation : Raspberry Pi**
 
-**🚀 SCRIPT COMPLET D'INSTALLATION (RECOMMANDÉ)**
-
-Un nouveau script complet est disponible pour installer TOUTES les dépendances :
+### Option A : Script automatique complet (RECOMMANDÉ) 🚀
 
 ```bash
 cd ~/git/borne_arcade/automatisation
 
-# Rendre le script exécutable
+# Rendre exécutable
 chmod +x 03_install_dependances_complete.sh
 
 # Lancer l'installation complète
 ./03_install_dependances_complete.sh
+
+# Le script installe :
+# ✅ Java (OpenJDK 17)
+# ✅ Python 3 + pip
+# ✅ Lua + Love2D
+# ✅ Pygame
+# ✅ Bibliothèques système (X11, audio)
+# ✅ MG2D (compilation)
+# ✅ Dépendances Python des jeux
+# ✅ lxterminal
 ```
 
-Ce script installe dans l'ordre :
-1. ✅ Mise à jour du système
-2. ✅ Outils de base (git, vim, curl, wget, htop)
-3. ✅ **Java** (OpenJDK 17 JDK + JRE)
-4. ✅ **Python 3** + pip + outils de développement
-5. ✅ **Bibliothèques système** (X11, audio, ALSA, PulseAudio)
-6. ✅ **Lua 5.3** + **Love2D** (pour CursedWare)
-7. ✅ **Pygame** (pour ball-blast, TronGame, PianoTile)
-8. ✅ **lxterminal** (pour l'autostart)
-9. ✅ **MG2D** (bibliothèque graphique, clonée depuis GitHub)
-10. ✅ **Dépendances spécifiques** des jeux Python (requirements.txt)
+**Durée** : ~30 minutes, installation automatique complète
 
-**Scripts existants (alternatifs)**
+### Option B : Installation manuelle (si script indisponible)
+
+#### 1️⃣ **Java (OpenJDK 17)**
 
 ```bash
-cd ~/git/borne_arcade/automatisation
+# Installation
+sudo apt install -y openjdk-17-jdk openjdk-17-jre
 
-# Mise à jour complète du système
-./install_all.sh
-
-# Installation des dépendances de base (Java, Python, MG2D)
-./install.sh
-```
-
-### 7.2 Installation manuelle (si nécessaire)
-
-**Java (OpenJDK ou Adoptium Temurin) :**
-
-```bash
-# Vérifier si Java est installé
-java -version
-
-# Si non installé, installer OpenJDK 17
-sudo apt install -y openjdk-17-jdk
-
-# Alternative : Adoptium Temurin (recommandé par le script install.sh)
-sudo apt install -y wget gnupg software-properties-common
-wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | sudo gpg --dearmor -o /usr/share/keyrings/adoptium.gpg
-echo "deb [signed-by=/usr/share/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/adoptium.list
-sudo apt update
-sudo apt install -y temurin-17-jdk
-
-# Vérifier l'installation
+# Vérification
 java -version
 javac -version
+
+# Devrait afficher : openjdk version "17.x.x"
 ```
 
-**Python 3 :**
+#### 2️⃣ **Python 3 et pip**
 
 ```bash
-# Python3 devrait être préinstallé sur RBpy3-RBPyOS
+# Installation (normalement déjà présent)
+sudo apt install -y python3 python3-pip python3-dev
+
+# Vérification
 python3 --version
-
-# Si nécessaire
-sudo apt install -y python3 python3-pip
+pip3 --version
 ```
 
-**Git :**
-
-```bash
-sudo apt install -y git
-git --version
-```
-
-**Bibliothèques graphiques (pour Java) :**
-
-```bash
-# Installer les bibliothèques X11 et audio
-sudo apt install -y libx11-6 libxext6 libxrender1 libxtst6 libxi6
-sudo apt install -y libasound2 libasound2-plugins
-
-# Pour le support audio Java si nécessaire
-sudo apt install -y libpulse0
-```
-
-**Lua (pour CursedWare) :**
+#### 3️⃣ **Lua et Love2D (pour CursedWare)**
 
 ```bash
 sudo apt install -y lua5.3 love
+
+# Vérification
+lua -v
+love --version
 ```
 
-**Dépendances Python pour les jeux Python :**
+#### 4️⃣ **Bibliothèques système**
 
 ```bash
-# ball-blast par exemple
+# Bibliothèques graphiques
+sudo apt install -y libx11-6 libxext6 libxrender1 libxtst6 libxi6
+
+# Bibliothèques audio
+sudo apt install -y libasound2 libasound2-plugins pulseaudio
+
+# Outils de compilation
+sudo apt install -y build-essential
+```
+
+#### 5️⃣ **Pygame (pour jeux Python)**
+
+```bash
+# Installation globale
+sudo apt install -y python3-pygame
+
+# Ou via pip (plus récent)
+pip3 install pygame --user
+
+# Vérification
+python3 -c "import pygame; print(pygame.version.ver)"
+```
+
+#### 6️⃣ **lxterminal (pour autostart)**
+
+```bash
+sudo apt install -y lxterminal
+
+# Vérification
+which lxterminal
+```
+
+#### 7️⃣ **Dépendances Python des jeux individuels**
+
+```bash
+# ball-blast
 cd ~/git/borne_arcade/projet/ball-blast
+if [ -f requirements.txt ]; then
+    pip3 install -r requirements.txt --user
+fi
+
+# TronGame
+cd ~/git/borne_arcade/projet/TronGame
+if [ -f requirements.txt ]; then
+    pip3 install -r requirements.txt --user
+fi
+
+# PianoTile
+cd ~/git/borne_arcade/projet/PianoTile
 if [ -f requirements.txt ]; then
     pip3 install -r requirements.txt --user
 fi
 ```
 
-### 7.3 Installation de MG2D
-
-Si vous n'avez pas restauré depuis votre sauvegarde :
+### Vérifier toutes les dépendances
 
 ```bash
-cd ~
-git clone https://github.com/synave/MG2D.git
-
-# Ou depuis l'ancien dépôt IUT
-# git clone http://iut.univ-littoral.fr/gitlab/synave/MG2D.git
+echo "=== VÉRIFICATION DES DÉPENDANCES ==="
+echo -n "Java : "; java -version 2>&1 | head -n1
+echo -n "Python : "; python3 --version
+echo -n "Lua : "; lua -v
+echo -n "Love2D : "; love --version
+echo -n "Pygame : "; python3 -c "import pygame; print('OK -', pygame.version.ver)" 2>/dev/null || echo "ERREUR"
+echo -n "lxterminal : "; which lxterminal
+echo -n "MG2D : "; ls ~/MG2D/ >/dev/null 2>&1 && echo "OK" || echo "MANQUANT"
 ```
 
-Vérifiez que MG2D est dans `~/MG2D` ou `~/git/MG2D` (ajuster les chemins si nécessaire).
+✅ **Point de contrôle** : Toutes les dépendances installées et vérifiées
 
 ---
 
-## 8. Configuration du clavier personnalisé
+## ÉTAPE 8 : Configurer le clavier personnalisé
 
-### 8.1 Restaurer le fichier de mapping clavier
+> ⏱️ **Durée : 5 minutes**  
+> 📍 **Localisation : Raspberry Pi**
 
-Le projet utilise un layout clavier personnalisé nommé `borne`. Ce fichier mappe les touches de la borne d'arcade aux touches du clavier.
+### Qu'est-ce que le clavier "borne" ?
+
+Le fichier `borne` est un **layout clavier XKB personnalisé** qui mappe les boutons physiques de la borne d'arcade vers des touches clavier : - Joystick 1 : ↑ ↓ ← → (flèches)
+- Joystick 2 : O L K M
+- Boutons J1 : R T Y F G H
+- Boutons J2 : A Z E Q S D
+
+### Installation du fichier
 
 ```bash
-# Vérifier si le fichier existe dans votre sauvegarde
+# Vérifier si le fichier existe dans la sauvegarde
 ls ~/backup_migration/xkb_borne_backup
 
-# Copier le fichier vers le système
+# Si oui, copier
 sudo cp ~/backup_migration/xkb_borne_backup /usr/share/X11/xkb/symbols/borne
 
-# Si le fichier n'existe pas dans la sauvegarde, utiliser celui du projet
-cd ~/git/borne_arcade
-if [ -f borne ]; then
-    sudo cp borne /usr/share/X11/xkb/symbols/borne
-else
-    echo "Fichier 'borne' non trouvé, vérifier le nom du fichier"
-    ls -la | grep -i borne
-fi
+# Sinon, utiliser celui du projet
+sudo cp ~/git/borne_arcade/borne /usr/share/X11/xkb/symbols/borne
+
+# Vérifier l'installation
+ls -la /usr/share/X11/xkb/symbols/borne
 ```
 
-### 8.2 Vérifier le contenu du fichier borne
+### Tester le layout
 
 ```bash
-# Afficher le contenu
-cat ~/git/borne_arcade/borne
+# Activer le layout temporairement
+setxkbmap borne
 
-# Ou si déjà installé
-cat /usr/share/X11/xkb/symbols/borne
+# Vérifier qu'il est actif
+setxkbmap -query
+
+# Devrait afficher :
+# layout:     borne
 ```
 
-Vous devriez voir un fichier de configuration XKB avec des mappings comme :
-```
-key <UP>   { [ Up ] };
-key <DOWN> { [ Down ] };
-// ... autres mappings
-```
-
-### 8.3 Activer le layout personnalisé
-
-**Méthode 1 : Temporaire (pour tester)**
+**Test pratique** :
 ```bash
+# Ouvrir un éditeur
+nano test_clavier.txt
+
+# Appuyer sur les boutons de la borne
+# Vérifier que les bonnes touches sont détectées
+```
+
+### Désactiver/Revenir au clavier normal (pour conf)
+
+```bash
+# Revenir au clavier français standard
+setxkbmap fr
+
+# Revenir au clavier borne
 setxkbmap borne
 ```
 
-Si cette commande fonctionne sans erreur, votre layout est correctement installé.
+> 💡 **Note** : Le script `lancerBorne.sh` contient déjà `setxkbmap borne`, donc le clavier sera activé automatiquement au lancement de la borne.
 
-**Méthode 2 : Permanent (dans le script de lancement)**
-
-Le script `lancerBorne.sh` contient déjà `setxkbmap borne`, donc le layout sera activé automatiquement au lancement de la borne.
-
-**Méthode 3 : Configuration système (optionnel)**
-
-Pour activer le layout dès le démarrage de X11 :
-
-```bash
-# Créer/éditer le fichier de configuration X11
-sudo nano /etc/X11/xorg.conf.d/00-keyboard.conf
-```
-
-Contenu :
-```
-Section "InputClass"
-    Identifier "system-keyboard"
-    MatchIsKeyboard "on"
-    Option "XkbLayout" "borne"
-EndSection
-```
+✅ **Point de contrôle** : Clavier arcade installé et fonctionnel
 
 ---
 
-## 9. Configuration de l'autostart
+## ÉTAPE 9 : Configurer le démarrage automatique
 
-### 9.1 Adapter le fichier borne.desktop
+> ⏱️ **Durée : 10 minutes**  
+> 📍 **Localisation : Raspberry Pi**
 
-Le fichier `borne.desktop` doit pointer vers le bon chemin :
-
-```bash
-cd ~/git/borne_arcade
-
-# Éditer le fichier
-nano borne.desktop
-```
-
-**Contenu à vérifier/modifier :**
-
-```ini
-[Desktop Entry]
-Type=Application
-Name=Borne Arcade
-Comment=Lancement automatique de la borne d'arcade
-Exec=/usr/bin/lxterminal -e /home/pi/git/borne_arcade/lancerBorne.sh
-Icon=gtk-dialog-authentication
-Terminal=true
-X-KeepTerminal=false
-```
-
-**Vérifications importantes :**
-- Remplacer `/home/pi/` par votre répertoire utilisateur si différent
-- Vérifier que `lxterminal` est installé (ou utiliser `xterm`, `gnome-terminal`, etc.)
-
-```bash
-# Vérifier si lxterminal est disponible
-which lxterminal
-
-# Si non installé
-sudo apt install -y lxterminal
-```
-
-**Déterminer l'utilisateur courant :**
-```bash
-echo $USER
-echo $HOME
-```
-
-### 9.2 Installation de l'autostart
+### Rendre les scripts exécutables
 
 ```bash
 cd ~/git/borne_arcade
 
-# Créer le répertoire autostart s'il n'existe pas
-mkdir -p ~/.config/autostart
-
-# Copier le fichier
-cp borne.desktop ~/.config/autostart/
-
-# Rendre exécutable
-chmod +x ~/.config/autostart/borne.desktop
-
-# Vérifier
-ls -la ~/.config/autostart/
-```
-
-### 9.3 Rendre les scripts exécutables
-
-```bash
-cd ~/git/borne_arcade
-
-# Rendre tous les scripts .sh exécutables
+# Tous les scripts .sh à la racine
 chmod +x *.sh
+
+# Tous les scripts de lancement de jeux
 chmod +x projet/*/*.sh
 
 # Vérifier
 ls -la *.sh
 ```
 
-### 9.4 Vérifier les chemins dans lancerBorne.sh
+### Adapter le script de lancement
 
 ```bash
 cd ~/git/borne_arcade
 nano lancerBorne.sh
 ```
 
-Contenu actuel :
-```bash
-#!/bin/bash
-
-setxkbmap borne
-
-echo "nettoyage des répertoires"
-echo "Veuillez patienter"
-./clean.sh
-./compilation.sh
-
-echo "Lancement du Menu"
-echo "Veuillez patienter"
-
-java -cp .:$HOME Main
-./clean.sh
-
-for i in {30..1}
-do
-    echo Extinction de la borne dans $i secondes
-    sleep 1
-done
-
-#sudo halt
-```
-
-**Modifications à considérer :**
-
-1. **Ajouter le bon CLASSPATH pour MG2D :**
+**Contenu recommandé** :
 
 ```bash
 #!/bin/bash
@@ -759,306 +855,371 @@ done
 # Se placer dans le bon répertoire
 cd /home/pi/git/borne_arcade
 
-# Activer le layout clavier personnalisé
+# Activer le clavier arcade
 setxkbmap borne
 
-echo "Nettoyage des répertoires"
-echo "Veuillez patienter"
+# Nettoyage et compilation
+echo "====================================="
+echo "  BORNE D'ARCADE - DÉMARRAGE"
+echo "====================================="
+echo ""
+echo "Nettoyage des fichiers temporaires..."
 ./clean.sh
 
-echo "Compilation du menu principal"
+echo "Compilation du menu principal..."
 ./compilation.sh
 
-echo "Lancement du Menu"
-echo "Veuillez patienter"
+# Vérifier compilation réussie
+if [ $? -ne 0 ]; then
+    echo "ERREUR : Compilation échouée !"
+    echo "Consultez logs/compilation.log pour détails"
+    sleep 10
+    exit 1
+fi
 
-# Définir le CLASSPATH avec MG2D
+# Définir le CLASSPATH pour MG2D
 export CLASSPATH=".:$HOME/MG2D:$HOME/git/MG2D"
 
-java -cp $CLASSPATH Main
+echo ""
+echo "Lancement du menu principal..."
+echo "====================================="
 
+# Lancer le menu Java
+java -cp "$CLASSPATH" Main
+
+# Nettoyage après fermeture
 ./clean.sh
 
 # Compte à rebours avant extinction
-for i in {30..1}
-do
-    echo "Extinction de la borne dans $i secondes"
+echo ""
+echo "====================================="
+for i in {30..1}; do
+    echo "Extinction dans $i secondes... (Ctrl+C pour annuler)"
     sleep 1
 done
 
-# Décommenter pour extinction automatique
+# Extinction automatique (décommenter si souhaité)
 #sudo halt
 ```
 
-### 9.5 Configuration de l'autologin (borne autonome)
+**Sauvegarder** : Ctrl+O → Entrée → Ctrl+X
 
-Pour que la borne démarre automatiquement sans interaction :
+### Configurer le fichier autostart
+
+```bash
+# Créer le répertoire autostart
+mkdir -p ~/.config/autostart
+
+# Éditer le fichier desktop
+nano ~/git/borne_arcade/borne.desktop
+```
+
+**Contenu** :
+
+```ini
+[Desktop Entry]
+Type=Application
+Name=Borne Arcade
+Comment=Lancement automatique de la borne d'arcade
+Exec=/usr/bin/lxterminal -e /home/pi/git/borne_arcade/lancerBorne.sh
+Icon=applications-games
+Terminal=true
+X-GNOME-Autostart-enabled=true
+```
+
+**Sauvegarder** et copier :
+
+```bash
+# Copier vers autostart
+cp ~/git/borne_arcade/borne.desktop ~/.config/autostart/
+
+# Rendre exécutable
+chmod +x ~/.config/autostart/borne.desktop
+
+# Vérifier
+ls -la ~/.config/autostart/
+cat ~/.config/autostart/borne.desktop
+```
+
+### Configuration autologin (rappel)
+
+Si pas déjà fait lors de raspi-config :
 
 ```bash
 sudo raspi-config
+# System Options → Boot / Auto Login → Desktop Autologin
+# Finish → Reboot
 ```
 
-- **System Options** → **Boot / Auto Login** → **Desktop Autologin**
-- Reboot
+✅ **Point de contrôle** : Autostart configuré
 
 ---
 
-## 10. Tests et validation
+## ÉTAPE 10 : Tester et valider
 
-### 10.1 Test du script de lancement (sans autostart)
+> ⏱️ **Durée : 15-20 minutes**  
+> 📍 **Localisation : Raspberry Pi**
 
-Avant de redémarrer, testez manuellement :
+### Test 1 : Compilation manuelle
 
 ```bash
 cd ~/git/borne_arcade
+
+# Test de nettoyage
+./clean.sh
 
 # Test de compilation
 ./compilation.sh
 
-# Vérifier qu'il n'y a pas d'erreurs
-cat logs/compilation.log
+# Vérifier les erreurs
+if [ -f logs/compilation.log ]; then
+    echo "=== Dernières lignes du log ==="
+    tail -n 20 logs/compilation.log
+fi
+
+# Vérifier les fichiers .class créés
+ls -la *.class | head -n 10
 ```
 
-Si des erreurs de compilation apparaissent :
-```bash
-# Vérifier le CLASSPATH
-echo $CLASSPATH
-export CLASSPATH=".:$HOME/MG2D"
+**Attendu** : Pas d'erreur, fichiers .class présents
 
-# Vérifier que MG2D existe
-ls -la ~/MG2D/
-
-# Recompiler
-./compilation.sh
-```
-
-**Lancer la borne manuellement :**
+### Test 2 : Lancement manuel du menu
 
 ```bash
 cd ~/git/borne_arcade
-./lancerBorne.sh
+
+# Définir CLASSPATH
+export CLASSPATH=".:$HOME/MG2D"
+
+# Lancer le menu
+java -cp "$CLASSPATH" Main
 ```
 
-### 10.2 Test du layout clavier
+**Attendu** : 
+- Menu graphique s'affiche
+- Liste des jeux visible
+- Navigation avec flèches ou joystick fonctionne
+
+**Tester** :
+- ✅ Navigation entre jeux
+- ✅ Sélection d'un jeu
+- ✅ Lancement d'un jeu
+- ✅ Retour au menu
+- ✅ Quitter le menu
+
+### Test 3 : Test d'un jeu Python
 
 ```bash
-# Activer le layout
-setxkbmap borne
-
-# Ouvrir un éditeur de texte et tester les touches de la borne
-nano test_clavier.txt
+cd ~/git/borne_arcade/projet/ball-blast
+python3 src/main.py
 ```
 
-Appuyez sur les boutons de la borne et vérifiez que les bonnes touches sont reconnues :
-- Joystick 1 : Flèches (Haut, Bas, Gauche, Droite)
-- Joystick 2 : O, L, K, M
-- Boutons J1 : R, T, Y, F, G, H
-- Boutons J2 : A, Z, E, Q, S, D
+**Attendu** : Jeu se lance, contrôles fonctionnent
 
-### 10.3 Test d'un jeu individuel
+### Test 4 : Test d'un jeu Lua
 
 ```bash
-cd ~/git/borne_arcade/projet/Columns
-
-# Compiler le jeu
-javac -cp .:$HOME/MG2D *.java
-
-# Lancer le jeu
-java -cp .:$HOME/MG2D Main
+cd ~/git/borne_arcade/projet/CursedWare
+love .
 ```
 
-### 10.4 Vérification automatisée du système
+**Attendu** : CursedWare démarre
 
-**🚀 SCRIPT DE VÉRIFICATION COMPLET**
-
-Avant de tester l'autostart, vérifiez que tout est bien configuré :
+### Test 5 : Script de vérification automatique
 
 ```bash
 cd ~/git/borne_arcade/automatisation
 
-# Rendre le script exécutable
+# Rendre exécutable
 chmod +x 04_verification_systeme.sh
 
 # Lancer la vérification complète
 ./04_verification_systeme.sh
 ```
 
-Ce script vérifie automatiquement :
-- ✅ Java, Python, Lua, Love2D
-- ✅ Pygame et autres dépendances Python
-- ✅ Structure des répertoires
-- ✅ Présence de tous les fichiers critiques
-- ✅ Clavier personnalisé "borne"
-- ✅ Configuration de l'autostart
-- ✅ **Compilation du menu** (test réel)
-- ✅ Présence et type de tous les jeux
+**Résultat** : Rapport complet avec ✅ pour chaque élément OK
 
-Le script affiche un rapport détaillé avec :
-- ✅ Éléments OK en vert
-- ⚠️ Avertissements en jaune
-- ❌ Erreurs en rouge
-
-### 10.5 Test de l'autostart
+### Test 6 : Autostart (test final)
 
 ```bash
+# Redémarrer le système
 sudo reboot
 ```
 
-Au redémarrage :
-1. Le système doit se connecter automatiquement
-2. Un terminal doit s'ouvrir
-3. Le menu de la borne doit apparaître après 10-15 secondes
+**Attendu après redémarrage** :
+1. ✅ Connexion automatique (pas de login)
+2. ✅ Terminal lxterminal s'ouvre automatiquement
+3. ✅ Nettoyage et compilation s'exécutent
+4. ✅ Menu de la borne s'affiche (après ~15-30 secondes)
+5. ✅ Jeux fonctionnent correctement
+6. ✅ Après fermeture menu : compte à rebours 30 secondes
 
-Si ça ne fonctionne pas, voir section Dépannage.
+**Si problème** → Voir section Dépannage ci-dessous
+
+✅ **Point de contrôle final** : Borne complètement fonctionnelle !
 
 ---
 
-## 11. Dépannage
+# PARTIE 4 : DÉPANNAGE
 
-### 11.1 La borne ne démarre pas automatiquement
+## Problèmes fréquents et solutions
 
-**Vérification 1 : Autostart**
+### ❌ Problème 1 : Autostart ne fonctionne pas
+
+**Symptôme** : Après redémarrage, rien ne se lance automatiquement
+
+**Solutions** :
 
 ```bash
 # Vérifier que le fichier existe
 ls -la ~/.config/autostart/borne.desktop
 
+# Vérifier les permissions
+chmod +x ~/.config/autostart/borne.desktop
+
 # Vérifier le contenu
 cat ~/.config/autostart/borne.desktop
 
-# Vérifier les permissions
-chmod +x ~/.config/autostart/borne.desktop
+# Vérifier que lxterminal est installé
+which lxterminal
+sudo apt install -y lxterminal
+
+# Vérifier autologin
+sudo raspi-config
+# S5 Boot / Auto Login → Desktop Autologin
+
+# Tester manuellement
+/usr/bin/lxterminal -e /home/pi/git/borne_arcade/lancerBorne.sh
 ```
 
-**Vérification 2 : Autologin**
+### ❌ Problème 2 : Erreur "package mg2d does not exist"
+
+**Symptôme** : Compilation Java échoue avec erreur MG2D
+
+**Solutions** :
 
 ```bash
-# Vérifier la configuration de l'autologin
-cat /etc/systemd/system/getty@tty1.service.d/autologin.conf
-```
-
-Devrait contenir quelque chose comme :
-```
-[Service]
-ExecStart=
-ExecStart=-/sbin/agetty --autologin pi --noclear %I $TERM
-```
-
-**Vérification 3 : Session graphique**
-
-```bash
-# Vérifier que le serveur X démarre
-ps aux | grep X
-
-# Vérifier les logs X
-cat ~/.xsession-errors
-```
-
-### 11.2 Erreur de compilation Java
-
-**Erreur : "package mg2d does not exist"**
-
-```bash
-# Vérifier que MG2D est installé
+# Vérifier que MG2D existe
 ls -la ~/MG2D
 
-# Vérifier le CLASSPATH
-echo $CLASSPATH
+# Si manquant, cloner
+cd ~
+git clone https://github.com/synave/MG2D.git
 
-# Définir le CLASSPATH
-export CLASSPATH=".:$HOME/MG2D"
+# Définir CLASSPATH
+echo 'export CLASSPATH=".:$HOME/MG2D"' >> ~/.bashrc
+source ~/.bashrc
 
-# Recompiler
+# Vérifier dans le script compilation.sh
 cd ~/git/borne_arcade
-./compilation.sh
-```
+grep -i classpath compilation.sh
 
-**Erreur : "class file has wrong version"**
-
-Vous avez probablement compilé avec Java 17 mais exécutez avec Java 8 (ou inverse).
-
-```bash
-# Vérifier la version de Java
-java -version
-javac -version
-
-# Installer la même version partout
-sudo apt install -y openjdk-17-jdk
-
-# Définir JAVA_HOME
-export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-armhf/
-export PATH=$JAVA_HOME/bin:$PATH
+# Modifier si nécessaire
+nano compilation.sh
+# Ajouter : export CLASSPATH=".:$HOME/MG2D"
 
 # Nettoyer et recompiler
-cd ~/git/borne_arcade
 ./clean.sh
 ./compilation.sh
 ```
 
-### 11.3 Problème d'affichage (mauvaise résolution)
+### ❌ Problème 3 : Mauvaise résolution d'écran
 
-**Solution 1 : raspi-config**
+**Symptôme** : Écran 1280x1024 non détecté, résolution incorrecte
+
+**Solution A : raspi-config**
 
 ```bash
 sudo raspi-config
-# Display Options → Resolution → 1280×1024
+# Display Options → D1 Resolution → DMT Mode 32 (1280x1024 @ 60Hz)
+# Finish → Reboot
 ```
 
-**Solution 2 : Configuration manuelle dans /boot/config.txt**
+**Solution B : Modification manuelle**
 
 ```bash
 sudo nano /boot/config.txt
 ```
 
 Ajouter/modifier :
-```
-# Force résolution 1280×1024
+
+```ini
+# Force résolution 1280x1024
 hdmi_force_hotplug=1
 hdmi_group=2
 hdmi_mode=32
 disable_overscan=1
 ```
 
-Modes HDMI courants :
-- Mode 32 : 1280×1024 @ 60Hz
-- Mode 35 : 1280×1024 @ 75Hz
-
 ```bash
-# Redémarrer
 sudo reboot
 ```
 
-**Solution 3 : xrandr (temporaire)**
+**Solution C : xrandr (temporaire)**
 
 ```bash
-# Lister les résolutions disponibles
+# Lister résolutions disponibles
 xrandr
 
 # Forcer la résolution
 xrandr --output HDMI-1 --mode 1280x1024
 ```
 
-### 11.4 Problème de son
+### ❌ Problème 4 : Clavier "borne" ne fonctionne pas
+
+**Symptôme** : `setxkbmap borne` renvoie une erreur
+
+**Solutions** :
 
 ```bash
-# Vérifier les périphériques audio
+# Vérifier le fichier
+ls -la /usr/share/X11/xkb/symbols/borne
+
+# Si absent, copier
+sudo cp ~/git/borne_arcade/borne /usr/share/X11/xkb/symbols/borne
+
+# Vérifier syntaxe
+sudo xkbcomp /usr/share/X11/xkb/symbols/borne $DISPLAY
+
+# Test activation
+setxkbmap borne
+
+# Vérifier
+setxkbmap -query
+```
+
+### ❌ Problème 5 : Pas de son
+
+**Symptôme** : Jeux muets, pas de son
+
+**Solutions** :
+
+```bash
+# Vérifier carte son
 aplay -l
 
-# Tester le son (fichier WAV de test)
+# Tester son
 speaker-test -t wav -c 2
 
-# Vérifier le mixer
+# Mixer ALSA
 alsamixer
+# Augmenter volume (flèche haut), Échap pouRegarder pour installer un nouvel OS raspberry py
 
-# Augmenter le volume si nécessaire (touche flèche haut)
-# Sortir avec Échap
+On passera d'un Rasbian 2017 à un RBpy3-RBPyOS
 
-# Configuration ALSA par défaut
+fait moi un tuto de A à Zr quitter
+
+# Forcer sortie HDMI (si écran avec son)
+sudo raspi-config
+# System Options → Audio → HDMI
+
+# Configuration ALSA
 sudo nano /etc/asound.conf
 ```
 
-Contenu recommandé :
-```
+Contenu :
+
+```ini
 pcm.!default {
     type hw
     card 0
@@ -1071,505 +1232,310 @@ ctl.!default {
 }
 ```
 
-### 11.5 Le clavier personnalisé ne fonctionne pas
-
-**Vérification 1 : Fichier installé**
-
 ```bash
-ls -la /usr/share/X11/xkb/symbols/borne
+sudo reboot
 ```
 
-Si le fichier n'existe pas :
-```bash
-sudo cp ~/git/borne_arcade/borne /usr/share/X11/xkb/symbols/borne
-```
+### ❌ Problème 6 : Jeux Python ne fonctionnent pas
 
-**Vérification 2 : Syntaxe du fichier**
+**Symptôme** : Erreur `ModuleNotFoundError: No module named 'pygame'`
 
-```bash
-# Vérifier qu'il n'y a pas d'erreur de syntaxe
-sudo xkbcomp /usr/share/X11/xkb/symbols/borne $DISPLAY 2>&1 | grep -i error
-```
-
-**Vérification 3 : Activation**
+**Solutions** :
 
 ```bash
-# Activer manuellement
-setxkbmap borne
+# Installer Pygame
+pip3 install pygame --user
 
-# Vérifier le layout actif
-setxkbmap -query
+# Ou version système
+sudo apt install python3-pygame
+
+# Vérifier
+python3 -c "import pygame; print(pygame.version.ver)"
+
+# Installer dépendances du jeu
+cd ~/git/borne_arcade/projet/ball-blast
+pip3 install -r requirements.txt --user
 ```
 
-**Si setxkbmap borne échoue :**
+### ❌ Problème 7 : Erreur "Permission denied"
 
-```bash
-# Revenir au layout par défaut
-setxkbmap fr
+**Symptôme** : `bash: ./script.sh: Permission denied`
 
-# Déboguer le fichier borne
-sudo xkbcomp /usr/share/X11/xkb/symbols/borne $DISPLAY
-```
-
-### 11.6 Erreur "Permission denied" au lancement
+**Solution** :
 
 ```bash
 cd ~/git/borne_arcade
 
 # Rendre tous les scripts exécutables
 chmod +x *.sh
-chmod +x compilation.sh lancerBorne.sh clean.sh
+chmod +x projet/*/*.sh
+chmod +x automatisation/*.sh
 
 # Vérifier
 ls -la *.sh
 ```
 
-### 11.7 Java ne trouve pas les classes
+### ❌ Problème 8 : Compilation lente ou freeze
+
+**Symptôme** : Compilation prend très longtemps ou semble bloquée
+
+**Solutions** :
 
 ```bash
-# Vérifier que vous êtes dans le bon répertoire
-pwd
-# Devrait afficher : /home/pi/git/borne_arcade
+# Vérifier charge système
+htop
 
-# Vérifier les fichiers .class
-ls -la *.class
+# Augmenter swap si nécessaire
+sudo nano /etc/dphys-swapfile
+# CONF_SWAPSIZE=1024 (au lieu de 100)
+sudo dphys-swapfile setup
+sudo dphys-swapfile swapon
 
-# Si absents, compiler
-./compilation.sh
-
-# Vérifier les erreurs
-cat logs/compilation.log
-```
-
-### 11.8 Les jeux Python ne fonctionnent pas
-
-```bash
-# Vérifier Python
-python3 --version
-
-# Installer pip si absent
-sudo apt install -y python3-pip
-
-# Installer les dépendances du jeu
-cd ~/git/borne_arcade/projet/ball-blast
-pip3 install -r requirements.txt --user
-
-# Tester le jeu
-python3 src/main.py
-```
-
-### 11.9 Logs pour déboguer
-
-```bash
-# Logs de compilation
-cat ~/git/borne_arcade/logs/compilation.log
-
-# Logs système
-journalctl -xe
-
-# Logs X11
-cat ~/.xsession-errors
-
-# Logs de démarrage
-dmesg | tail -50
-```
-
----
-
-## 12. Menu d'automatisation interactif
-
-**🎯 OUTIL TOUT-EN-UN**
-
-Pour simplifier toute la procédure, un menu interactif est disponible :
-
-```bash
-cd ~/git/borne_arcade/automatisation
-
-# Rendre le script exécutable
-chmod +x menu_migration.sh
-
-# Lancer le menu
-./menu_migration.sh
-```
-
-Le menu propose :
-
-**PHASE 1 - ANCIEN SYSTÈME**
-1. Sauvegarder l'ancien système
-2. Voir le tutoriel de migration
-
-**PHASE 2 - NOUVEAU SYSTÈME**
-3. Restaurer la sauvegarde
-4. Installer toutes les dépendances
-5. Vérifier le système
-6. Tester la compilation
-
-**MAINTENANCE**
-7. Mettre à jour le système
-8. Voir l'état des jeux
-
-Ce menu guide pas à pas à travers l'ensemble du processus de migration.
-
----
-
-## 13. Optimisations post-installation
-
-### 12.1 Désactiver les services inutiles
-
-Pour accélérer le démarrage :
-
-```bash
-# Désactiver Bluetooth (si non utilisé)
-sudo systemctl disable bluetooth.service
-
-# Désactiver le WiFi (si Ethernet câblé)
-sudo systemctl disable wpa_supplicant.service
-
-# Désactiver les mises à jour automatiques (pour stabilité)
-sudo systemctl disable apt-daily.timer
-sudo systemctl disable apt-daily-upgrade.timer
-```
-
-### 12.2 Augmenter la mémoire GPU
-
-Pour de meilleures performances graphiques :
-
-```bash
-sudo nano /boot/config.txt
-```
-
-Modifier :
-```
-gpu_mem=256
-```
-
-### 12.3 Overclock (optionnel, attention à la chaleur)
-
-```bash
-sudo nano /boot/config.txt
-```
-
-Pour Raspberry Pi 3 :
-```
-# Overclock modéré
-arm_freq=1350
-core_freq=500
-sdram_freq=500
-over_voltage=2
-
-# Température max avant throttling
-temp_limit=75
-```
-
-⚠️ **Attention :** L'overclock peut rendre le système instable et diminuer la durée de vie. Utilisez un dissipateur thermique et testez la stabilité.
-
-### 12.4 Configuration de la mémoire swap
-
-```bash
-# Désactiver le swap (optionnel, pour prolonger la vie de la SD)
-sudo systemctl disable dphys-swapfile.service
-```
-
-### 12.5 Créer un script de mise à jour
-
-```bash
-nano ~/update_borne.sh
-```
-
-Contenu :
-```bash
-#!/bin/bash
-
-echo "=== Mise à jour de la borne d'arcade ==="
-
-# Mise à jour du système
-echo "[1/4] Mise à jour du système..."
-sudo apt update
-sudo apt upgrade -y
-
-# Mise à jour de MG2D
-echo "[2/4] Mise à jour de MG2D..."
-cd ~/MG2D
-git pull
-
-# Mise à jour de borne_arcade
-echo "[3/4] Mise à jour de borne_arcade..."
+# Compiler en mode verbeux
 cd ~/git/borne_arcade
-git pull
-
-# Recompilation
-echo "[4/4] Recompilation..."
-./compilation.sh
-
-echo "✓ Mise à jour terminée !"
+javac -verbose -cp ".:$HOME/MG2D" *.java 2>&1 | tee compile_debug.log
 ```
 
-```bash
-chmod +x ~/update_borne.sh
+### 📋 Checklist finale de validation
+
+Avant de considérer la migration terminée :
+
 ```
+ Système
+   [✓] RBpy3-RBPyOS installé et à jour
+   [✓] Configuration raspi-config complète
+   [✓] Résolution 1280x1024 correcte
+   [✓] Autologin activé
 
----
+ Projet
+   [✓] borne_arcade restauré dans ~/git/
+   [✓] MG2D présent dans ~/MG2D/
+   [✓] Highscores restaurés
+   [✓] Tous les scripts exécutables
 
-## 14. Checklist finale
+ Dépendances
+   [✓] Java 17 installé et fonctionnel
+   [✓] Python 3 + Pygame
+   [✓] Lua + Love2D
+   [✓] lxterminal installé
 
-Avant de considérer la migration terminée, vérifiez :
+ Configuration
+   [✓] Clavier "borne" installé et testé
+   [✓] Fichier borne.desktop dans ~/.config/autostart/
+   [✓] Script lancerBorne.sh adapté
+   [✓] CLASSPATH correctement défini
 
-- [ ] Le système démarre automatiquement
-- [ ] L'utilisateur se connecte automatiquement
-- [ ] Le menu de la borne se lance après 15 secondes
-- [ ] Les joysticks et boutons sont reconnus correctement
-- [ ] Tous les jeux se lancent sans erreur
-- [ ] Les highscores sont restaurés
-- [ ] Le son fonctionne
-- [ ] La résolution d'écran est correcte (1280×1024)
-- [ ] Le système s'éteint proprement après 30 secondes de fermeture du menu
-- [ ] Vous avez une sauvegarde de la nouvelle configuration
+ Tests
+   [✓] Compilation manuelle OK
+   [✓] Menu principal se lance
+   [✓] Au moins 3 jeux testés avec succès
+   [✓] Clavier arcade réactif (joysticks + boutons)
+   [✓] Son fonctionnel
+   [✓] Autostart fonctionne après reboot
 
----
-
-## 15. Sauvegarde post-migration
-
-Une fois la migration réussie et testée, créez une image de sauvegarde complète :
-
-```bash
-# Sur le Raspberry Pi, éteindre proprement
-sudo shutdown -h now
-
-# Sur votre PC, créer une image de la carte SD
-sudo dd if=/dev/sdb of=borne_arcade_rbpy3_backup.img bs=4M status=progress
-
-# Compresser l'image
-gzip borne_arcade_rbpy3_backup.img
-
-# Vous obtenez : borne_arcade_rbpy3_backup.img.gz
-```
-
-Cette image pourra être restaurée en cas de problème.
-
----
-
-## 16. Conclusion
-
-Vous avez maintenant migré votre borne d'arcade de Rasbian 2017 vers RBpy3-RBPyOS ! 🎉
-
-**Prochaines étapes suggérées :**
-
-1. Tester tous les jeux individuellement
-2. Jouer plusieurs parties pour valider la stabilité
-3. Noter les éventuels bugs ou améliorations
-4. Documenter les différences entre l'ancien et le nouveau système
-5. Envisager des améliorations (nouveaux jeux, meilleurs graphismes, etc.)
-
-**Ressources supplémentaires :**
-
-- Documentation Raspberry Pi : https://www.raspberrypi.com/documentation/
-- Forum Raspberry Pi : https://forums.raspberrypi.com/
-- Dépôt MG2D : https://github.com/synave/MG2D
-
----
-
-**Auteur :** Guide de migration créé le 12 février 2026  
-**Version :** 1.0  
-**Licence :** MIT / Éducatif
-
----
-
-## 17. Scripts d'automatisation disponibles
-
-### Vue d'ensemble
-
-Tous les scripts d'automatisation sont dans [`automatisation/`](automatisation/) :
-
-| Script | Phase | Description |
-|--------|-------|-------------|
-| `menu_migration.sh` | 🎯 Tout-en-un | Menu interactif guidé |
-| `01_backup_ancien_systeme.sh` | 📦 Ancien système | Sauvegarde complète automatique |
-| `02_restauration_nouveau_systeme.sh` | 📥 Nouveau système | Restauration automatique |
-| `03_install_dependances_complete.sh` | ⚙️ Installation | Toutes les dépendances |
-| `04_verification_systeme.sh` | ✅ Vérification | Test complet du système |
-| `install_all.sh` | 🔄 Maintenance | Mise à jour du système |
-| `install.sh` | 🔄 Maintenance | Vérification des dépendances |
-
-### Usage recommandé
-
-**Sur l'ancien système :**
-```bash
-cd ~/git/borne_arcade/automatisation
-./01_backup_ancien_systeme.sh
-# Copier l'archive créée sur clé USB ou PC
-```
-
-**Sur le nouveau système :**
-```bash
-# Copier l'archive de sauvegarde
-# Copier ou cloner le projet
-cd ~/git/borne_arcade/automatisation
-
-# Option simple : menu guidé
-./menu_migration.sh
-
-# Option manuelle : scripts séquentiels
-./02_restauration_nouveau_systeme.sh
-./03_install_dependances_complete.sh
-./04_verification_systeme.sh
-```
-
-### Documentation complète
-
-Consultez [`automatisation/README.md`](automatisation/README.md) pour :
-- Guide détaillé de chaque script
-- Exemples d'utilisation
-- Résolution de problèmes
-- Structure après migration
-
----
-
-## 18. Notes spécifiques à RBpy3-RBPyOS
-
-> ⚠️ **Note importante :** RBpy3-RBPyOS n'est pas un système d'exploitation officiellement documenté dans mes bases en février 2026. 
-> 
-> Si "RBpy3-RBPyOS" désigne un OS personnalisé ou une distribution spécifique à votre institution, vous devrez adapter ce guide avec :
-> 
-> - L'URL de téléchargement officielle de l'image
-> - Les spécificités de configuration propres à cette distribution
-> - Les outils préinstallés (ou manquants)
-> - La documentation officielle du système
->
-> **Alternatives courantes :**
-> - **Raspberry Pi OS (ex-Raspbian)** : Distribution officielle
-> - **Ubuntu Server for Raspberry Pi** : Ubuntu optimisé
-> - **RetroPie** : Pour émulation et jeux retro
-> - **Lakka** : OS léger pour gaming
->
-> Si vous utilisez une distribution standard, remplacez simplement l'étape de téléchargement par l'image appropriée.
-
----
-
-## Annexe A : Jeux de la borne
-
-### Liste des jeux installés
-
-| Jeu | Type | Langage | Dépendances |
-|-----|------|---------|-------------|
-| **Columns** | Puzzle | ☕ Java | MG2D |
-| **CursedWare** | Mini-jeux | 🌙 Lua | Love2D |
-| **DinoRail** | Action | ☕ Java | MG2D |
-| **InitialDrift** | Course | ☕ Java | MG2D |
-| **JavaSpace** | Shoot'em up | ☕ Java | MG2D |
-| **Kowasu_Renga** | Casse-briques | ☕ Java | MG2D |
-| **Minesweeper** | Puzzle | ☕ Java | MG2D |
-| **OsuTile** | Rythme | ☕ Java | MG2D |
-| **PianoTile** | Rythme | 🐍 Python | Pygame |
-| **Pong** | Arcade | ☕ Java | MG2D |
-| **Puissance_X** | Stratégie | ☕ Java | MG2D |
-| **Snake_Eater** | Arcade | ☕ Java | MG2D |
-| **TronGame** | Action | 🐍 Python | Pygame |
-| **ball-blast** | Action | 🐍 Python | Pygame |
-
-### Dépendances par type
-
-**Jeux Java (☕)** - Majorité
-- OpenJDK 17 ou supérieur
-- MG2D (bibliothèque graphique)
-- Bibliothèques X11, audio
-
-**Jeux Python (🐍)** - 3 jeux
-- Python 3.7+ (certains scripts spécifient python3.7)
-- Pygame >= 2.5.0
-- Voir `requirements.txt` dans chaque dossier
-
-**Jeux Lua (🌙)** - 1 jeu
-- Lua 5.3
-- Love2D (framework de jeu)
-
-### Highscores
-
-Chaque jeu a son propre fichier `highscore` dans son répertoire.
-Les highscores sont sauvegardés et restaurés lors de la migration.
-
----
-
-## Annexe B : Structure du fichier clavier "borne"
-
-Le fichier [`borne_arcade/borne`](borne_arcade/borne) est un fichier de configuration XKB (X Keyboard) qui mappe les touches physiques de la borne d'arcade vers des touches clavier standard.
-
-### Extrait du fichier
-
-```ini
-default  partial alphanumeric_keys
-xkb_symbols "basic" {
-    include "latin"
-    name[Group1]="French Borne";
-    
-    # Mappings personnalisés pour la borne
-    key <AE01>  { [         f,  ampersand,  onesuperior,   exclamdown ] };
-    key <AE02>  { [         g,     eacute,   asciitilde,    oneeighth ] };
-    key <AE03>  { [         h,   quotedbl,   numbersign,     sterling ] };
-    key <AE04>  { [         r, apostrophe,    braceleft,       dollar ] };
-    key <AE05>  { [         t,  parenleft,  bracketleft, threeeighths ] };
-    key <AE06>  { [         y,      minus,          bar,  fiveeighths ] };
-    
-    # Joysticks
-    key   <UP> {	[  Up			]	};
-    key   <DOWN> {	[  Down			]	};
-    # ...
-}
-```
-
-**Installation :**
-```bash
-sudo cp borne /usr/share/X11/xkb/symbols/borne
-setxkbmap borne
+ Sécurité
+   [✓] Sauvegarde complète existante
+   [✓] Mot de passe changé (différent du défaut)
+   [✓] SSH sécurisé ou désactivé si non nécessaire
 ```
 
 ---
 
-## Annexe C : Correspondance des touches de la borne
+## 📚 Annexes
+
+### Annexe A : Correspondance touches arcade
 
 | Contrôle | Joueur 1 | Joueur 2 |
 |----------|----------|----------|
-| **Joystick** |
-| Haut | ↑ | O |
-| Bas | ↓ | L |
-| Gauche | ← | K |
-| Droite | → | M |
-| **Boutons** |
-| Bouton 1 | R | A |
-| Bouton 2 | T | Z |
-| Bouton 3 | Y | E |
-| Bouton 4 | F | Q |
-| Bouton 5 | G | S |
-| Bouton 6 | H | D |
+| **Joystick Haut** | ↑ | O |
+| **Joystick Bas** | ↓ | L |
+| **Joystick Gauche** | ← | K |
+| **Joystick Droite** | → | M |
+| **Bouton 1** | R | A |
+| **Bouton 2** | T | Z |
+| **Bouton 3** | Y | E |
+| **Bouton 4** | F | Q |
+| **Bouton 5** | G | S |
+| **Bouton 6** | H | D |
 
----
-
-## Annexe D : Structure du projet après migration
+### Annexe B : Structure finale du système
 
 ```
 /home/pi/
-├── MG2D/                           # Bibliothèque graphique
+├── MG2D/                        # Bibliothèque graphique Java
+│   ├── geometrie/
+│   ├── noyau/
+│   └── ...
 ├── git/
-│   └── borne_arcade/               # Projet principal
-│       ├── borne                   # Fichier de mapping clavier
-│       ├── borne.desktop           # Autostart
-│       ├── lancerBorne.sh          # Script de lancement
-│       ├── compilation.sh          # Script de compilation
-│       ├── clean.sh                # Nettoyage
-│       ├── Main.java               # Menu principal
-│       ├── automatisation/
-│       │   ├── install.sh          # Installation dépendances
-│       │   └── install_all.sh      # Mise à jour système
-│       ├── projet/                 # Tous les jeux
+│   └── borne_arcade/            # Projet principal
+│       ├── borne                # Layout clavier XKB
+│       ├── borne.desktop        # Fichier autostart
+│       ├── lancerBorne.sh       # Script lancement principal
+│       ├── compilation.sh       # Compilation Java
+│       ├── clean.sh             # Nettoyage
+│       ├── Main.java            # Menu principal
+│       ├── Boite*.java          # Classes menu
+│       ├── automatisation/      # Scripts automatisation
+│       ├── projet/              # Tous les jeux
 │       │   ├── Columns/
 │       │   ├── CursedWare/
 │       │   ├── DinoRail/
+│       │   ├── InitialDrift/
+│       │   ├── JavaSpace/
+│       │   ├── ball-blast/
 │       │   └── ...
-│       └── logs/                   # Logs de compilation
-└── .config/
-    └── autostart/
-        └── borne.desktop           # Copie pour autostart
+│       ├── fonts/               # Polices
+│       ├── img/                 # Images menu
+│       ├── sound/               # Sons menu
+│       └── logs/                # Logs compilation
+├── .config/
+│   └── autostart/
+│       └── borne.desktop        # Copie pour lancement auto
+└── backup_migration/            # Sauvegarde (optionnel)
+    └── ...
+```
+
+### Annexe C : Liste des jeux disponibles
+
+| Jeu | Langage | Dépendances | Type |
+|-----|---------|-------------|------|
+| Columns | ☕ Java | MG2D | Puzzle (Tetris-like) |
+| CursedWare | 🌙 Lua | Love2D | Mini-jeux WarioWare-like |
+| DinoRail | ☕ Java | MG2D | Action (Dino infini) |
+| InitialDrift | ☕ Java | MG2D | Course arcade |
+| JavaSpace | ☕ Java | MG2D | Shoot'em up spatial |
+| Kowasu_Renga | ☕ Java | MG2D | Casse-briques |
+| Minesweeper | ☕ Java | MG2D | Démineur |
+| OsuTile | ☕ Java | MG2D | Rythme |
+| PianoTile | 🐍 Python | Pygame | Rythme (Piano Tiles) |
+| Pong | ☕ Java | MG2D | Arcade classique |
+| Puissance_X | ☕ Java | MG2D | Puissance 4 |
+| Snake_Eater | ☕ Java | MG2D | Snake classique |
+| TronGame | 🐍 Python | Pygame | Tron lightcycles |
+| ball-blast | 🐍 Python | Pygame | Action (casse-boules) |
+
+### Annexe D : Commandes utiles
+
+```bash
+# Système
+sudo reboot                      # Redémarrer
+sudo halt                        # Éteindre
+sudo raspi-config                # Configuration Raspberry Pi
+htop                             # Moniteur système
+
+# Réseau
+hostname -I                      # Adresse IP
+ip addr show                     # Infos réseau détaillées
+ping google.com                  # Test connexion Internet
+
+# Borne d'arcade
+cd ~/git/borne_arcade            # Aller au projet
+./compilation.sh                 # Compiler menu
+./lancerBorne.sh                 # Lancer menu
+./clean.sh                       # Nettoyer fichiers .class
+
+# Clavier
+setxkbmap borne                  # Activer clavier arcade
+setxkbmap fr                     # Revenir clavier français
+setxkbmap -query                 # Voir layout actif
+
+# Java
+java -version                    # Version Java
+javac -version                   # Version compilateur
+export CLASSPATH=".:$HOME/MG2D"  # Définir CLASSPATH
+
+# Python
+python3 --version                # Version Python
+pip3 list                        # Paquets installés
+pip3 install pygame --user       # Installer Pygame
+
+# Git (mise à jour projet)
+cd ~/git/borne_arcade
+git pull                         # Récupérer dernières modifications
+git status                       # Voir état du dépôt
+
+# Logs et débogage
+tail -f ~/git/borne_arcade/logs/compilation.log  # Suivre log compilation
+journalctl -xe                   # Logs système
+dmesg | tail -50                 # Messages noyau
+```
+
+### Annexe E : Ressources et documentation
+
+**Documentation Raspberry Pi**
+- Site officiel : https://www.raspberrypi.com/documentation/
+- Forums : https://forums.raspberrypi.com/
+
+**Bibliothèque MG2D**
+- GitHub : https://github.com/synave/MG2D
+- Documentation : Voir README du dépôt
+
+**Projet borne_arcade**
+- Documentation : `~/git/borne_arcade/Documents/Documentation/`
+- README : `~/git/borne_arcade/README.md`
+
+**Systèmes d'exploitation alternatives**
+- Raspberry Pi OS : https://www.raspberrypi.com/software/operating-systems/
+- Ubuntu for Raspberry Pi : https://ubuntu.com/download/raspberry-pi
+- RetroPie : https://retropie.org.uk/
+
+---
+
+## 🎉 Conclusion
+
+**Félicitations !** Vous avez migré avec succès votre borne d'arcade de Rasbian 2017 vers RBpy3-RBPyOS.
+
+### Ce que vous avez accompli :
+
+✅ Sauvegarde complète de l'ancien système  
+✅ Installation d'un système d'exploitation moderne  
+✅ Configuration optimisée pour borne d'arcade  
+✅ Restauration de tous les jeux et highscores  
+✅ Installation de toutes les dépendances  
+✅ Configuration du clavier personnalisé  
+✅ Démarrage automatique de la borne  
+
+### Prochaines étapes suggérées :
+
+1. **Tester intensivement** : Jouez à tous les jeux, vérifiez la stabilité
+2. **Sauvegarder l'image** : Créer une sauvegarde de la carte SD configurée
+3. **Documenter les modifications** : Noter les personnalisations spécifiques
+4. **Optimiser** : Ajuster performances, résolution, son selon besoin
+5. **Développer** : Ajouter de nouveaux jeux ou fonctionnalités !
+
+### Support et aide
+
+**En cas de problème** :
+- Consultez la section [Dépannage](#partie-4--dépannage)
+- Vérifiez les logs : `~/git/borne_arcade/logs/`
+- Forums Raspberry Pi
+- Documentation du projet
+
+### Sauvegarde post-migration (IMPORTANT)
+
+Une fois tout validé, créez une image de sauvegarde :
+
+```bash
+# Éteindre proprement le Raspberry Pi
+sudo halt
+
+# Sur votre PC, sauvegarder la carte SD
+sudo dd if=/dev/sdX of=borne_arcade_rbpy3_OK_$(date +%Y%m%d).img bs=4M status=progress
+
+# Compresser
+gzip borne_arcade_rbpy3_OK_$(date +%Y%m%d).img
+
+# Stocker dans un endroit sûr
 ```
 
 ---
 
-**Fin du tutoriel** ✅
+**Guide créé le :** 12 février 2026  
+**Version :** 2.0 - Tutoriel complet A à Z  
+**Projet :** Borne d'arcade IUT du Littoral Côte d'Opale  
+**Auteur :** Documentation technique SAÉ  
+**Licence :** Éducatif / MIT
+
+---
+
+🎮 **Bonne arcade !** 🕹️

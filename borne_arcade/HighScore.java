@@ -51,7 +51,7 @@ class HighScore{
 
 	//System.out.println("position : "+position);
 	if(position>=10)
-	    System.exit(0);
+		return;
 	
 	String score=s+"";
 
@@ -196,20 +196,27 @@ class HighScore{
 
 	enregistrerFichier(fichierHighScore, list, ""+c[0]+c[1]+c[2],s);
 
-	System.exit(0);
+	return;
     }
 
     public static ArrayList<LigneHighScore> lireFichier(String fichier){
 	ArrayList<LigneHighScore> l = new ArrayList<LigneHighScore>();
 
 	try{
+	    // s'assurer que le fichier et son répertoire existent
+	    try{
+		File ff = new File(fichier);
+		File parent = ff.getParentFile();
+		if(parent!=null && !parent.exists()) parent.mkdirs();
+		if(!ff.exists()) ff.createNewFile();
+	    }catch(Exception ex){ System.err.println("HighScore prepare file: "+ex.getMessage()); }
 	    BufferedReader reader = new BufferedReader(new FileReader(fichier));
 	    String currentLine;
 	    while ((currentLine = reader.readLine()) != null) {
 		l.add(new LigneHighScore(currentLine));
 	    }
 	    reader.close();
-	}catch(Exception e){}
+	}catch(Exception e){ System.err.println("HighScore lireFichier: "+e.getMessage()); }
 	
 	return l;
     }
@@ -233,6 +240,8 @@ class HighScore{
 	    list.remove(list.size()-1);
 	
 	try{
+	    // s'assurer que le répertoire existe avant d'écrire
+	    try{ File ff = new File(fichier); File parent = ff.getParentFile(); if(parent!=null && !parent.exists()) parent.mkdirs(); }catch(Exception ex){ System.err.println("HighScore prepare write: "+ex.getMessage()); }
 	    BufferedWriter writer = new BufferedWriter(new FileWriter(fichier));
 	    for(int i=0;i<list.size();i++){
 		writer.write(list.get(i).toString());
@@ -240,7 +249,7 @@ class HighScore{
 		    writer.write("\n");
 	    }
 	    writer.close();
-	}catch(Exception e){}
+	}catch(Exception e){ System.err.println("HighScore enregistrerFichier: "+e.getMessage()); }
 
 	
 

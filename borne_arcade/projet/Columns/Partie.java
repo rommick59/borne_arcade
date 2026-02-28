@@ -3,8 +3,13 @@ import MG2D.audio.Bruitage;
 import MG2D.geometrie.Dessin;
 import MG2D.geometrie.Point;
 import MG2D.geometrie.Texture;
+import MG2D.Couleur;
+import MG2D.geometrie.Texte;
+import java.awt.Font;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.io.InputStream;
 
 public class Partie {
     //CONSTANTES
@@ -53,9 +58,12 @@ public class Partie {
     private int statutColone1;
     private int statutColone2;
     private boolean finPartie;
+    private boolean highscoreEnregistre;
 
     private Puits puits1;
     private Puits puits2;
+
+    private ClavierBorneArcade clavier;
 
     private Fenetre f;
 
@@ -90,10 +98,11 @@ public class Partie {
 
     }
 
-    public Partie(Fenetre f, int nbJoueurs){
+    public Partie(Fenetre f, int nbJoueurs, ClavierBorneArcade clavier){
         listeTextures=new ArrayList<Dessin>();
         this.f=f;
         this.nbJoueurs=nbJoueurs;
+        this.clavier=clavier;
         this.statut1=MENU;
         this.statutColone1 =CHUTE;
         this.statut2=GAMEOVER;
@@ -103,6 +112,7 @@ public class Partie {
         }
 
         this.finPartie=false;
+        this.highscoreEnregistre=false;
 
         this.compteur1=0;
         this.compteur2=0;
@@ -305,6 +315,10 @@ public class Partie {
                         for(int i=0;i<Puits.LARGEUR;i++){
                             if(grille[i][13].getCouleur()>0){
                                 statut =GAMEOVER;
+                                if(numJoueur==1 && this.nbJoueurs==1 && !highscoreEnregistre){
+                                    enregistrerHighscoreSiQualifie(puits.getScore());
+                                    highscoreEnregistre=true;
+                                }
                             }
                         }
 
@@ -366,7 +380,6 @@ public class Partie {
 
                 break;
             case GAMEOVER:
-		//TODO: classe high score pour le jeu!!!
                 break;
         }
 
@@ -392,6 +405,17 @@ public class Partie {
         }
 
 
+    }
+
+    private void enregistrerHighscoreSiQualifie(int score){
+        List<LigneHighScore> scores = HighScore.lireFichier("projet/Columns/highscore");
+        scores.sort((a, b) -> Integer.compare(b.getScore(), a.getScore()));
+        int seuil = scores.isEmpty() ? -1 : scores.get(Math.min(scores.size() - 1, 9)).getScore();
+        boolean qualifie = scores.size() < 10 || score >= seuil;
+        if(qualifie){
+            HighScore.demanderEnregistrerNom(this.f, this.clavier, null, score, "projet/Columns/highscore");
+        }
+        try{ this.clavier.reinitialisation(); }catch(Exception e){}
     }
 
 

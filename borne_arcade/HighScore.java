@@ -10,6 +10,29 @@ import java.io.FileWriter;
 
 class HighScore{
 
+	// Résout un chemin de highscore pour éviter les écritures dans un mauvais dossier lorsque
+	// le jeu est lancé depuis un répertoire différent. On teste plusieurs emplacements connus
+	// et on retient le premier existant ou créable.
+	private static String resolveHighScorePath(String chemin){
+	String[] candidats = {
+		chemin,
+		"./"+chemin,
+		"../"+chemin,
+		"../../"+chemin,
+		System.getProperty("user.home")+"/saé/borne_arcade/borne_arcade/"+chemin
+	};
+	for(String c : candidats){
+		try{
+		File f = new File(c);
+		File parent = f.getParentFile();
+		if(parent == null || parent.exists()){
+			return f.getPath();
+		}
+		}catch(Exception e){ /* ignore and try next */ }
+	}
+	return chemin;
+	}
+
     public static char suivant(char c){
 	if(c>='A' && c<'Z')
 	    return (char)(c+1);
@@ -30,8 +53,9 @@ class HighScore{
 	return 'Z';
     }
 
-    public static void demanderEnregistrerNom(Fenetre f, ClavierBorneArcade clavier, Texture t, int s, String fichierHighScore){
+	public static void demanderEnregistrerNom(Fenetre f, ClavierBorneArcade clavier, Texture t, int s, String fichierHighScore){
 
+	fichierHighScore = resolveHighScorePath(fichierHighScore);
 	ArrayList<LigneHighScore> list = lireFichier(fichierHighScore);
 	for(LigneHighScore l:list)
 	    System.out.println(l);
@@ -63,11 +87,17 @@ class HighScore{
 	Font font;
 	font = null;
 	try{
-	    File in = new File("/home/pi/git/borne_arcade/fonts/PrStart.ttf");
-	    font = font.createFont(Font.TRUETYPE_FONT, in);
+	    // utiliser le chemin relatif du repo; fallback si non trouvé
+	    File in = new File("fonts/PrStart.ttf");
+	    if(!in.exists()){
+		// tenter chemin absolu legacy sur Raspberry Pi
+		in = new File("/home/pi/git/borne_arcade/fonts/PrStart.ttf");
+	    }
+	    font = Font.createFont(Font.TRUETYPE_FONT, in);
 	    font = font.deriveFont(40.0f);
 	}catch (Exception e) {
-	    System.err.println(e.getMessage());
+	    System.err.println("HighScore font fallback: "+e.getMessage());
+	    font = new Font("Arial", Font.BOLD, 40);
 	}
 	Texte highscore = new Texte(Couleur.NOIR, "H  I  G  H  S  C  O  R  E", font, new Point(640,950));
 	Texte scoreAtteint = new Texte(Couleur.NOIR, score, font, new Point(420,400));
@@ -196,32 +226,67 @@ class HighScore{
 
 	enregistrerFichier(fichierHighScore, list, ""+c[0]+c[1]+c[2],s);
 
+	// nettoyer l'overlay highscore avant de rendre la main au jeu
+	try{ f.supprimer(blancTrans); }catch(Exception e){}
+	try{ f.supprimer(highscore); }catch(Exception e){}
+	try{ f.supprimer(scoreAtteint); }catch(Exception e){}
+	try{ f.supprimer(scorePrec); }catch(Exception e){}
+	try{ f.supprimer(scoreSuiv); }catch(Exception e){}
+	try{ f.supprimer(enterYourName); }catch(Exception e){}
+	try{ f.supprimer(posNum); }catch(Exception e){}
+	try{ f.supprimer(posNumPrec); }catch(Exception e){}
+	try{ f.supprimer(posNumSuiv); }catch(Exception e){}
+	try{ f.supprimer(rect1); }catch(Exception e){}
+	try{ f.supprimer(rect2); }catch(Exception e){}
+	try{ f.supprimer(rect3); }catch(Exception e){}
+	try{ f.supprimer(rect4); }catch(Exception e){}
+	try{ f.supprimer(select); }catch(Exception e){}
+	for(int i=0;i<caracteres.length;i++){
+	    try{ f.supprimer(caracteres[i]); }catch(Exception e){}
+	}
+	for(int i=0;i<caracteresPrec.length;i++){
+	    try{ f.supprimer(caracteresPrec[i]); }catch(Exception e){}
+	}
+	for(int i=0;i<caracteresSuiv.length;i++){
+	    try{ f.supprimer(caracteresSuiv[i]); }catch(Exception e){}
+	}
+	if(t!=null){
+	    try{ f.supprimer(t); }catch(Exception e){}
+	}
+	f.rafraichir();
+
 	return;
     }
 
-    public static ArrayList<LigneHighScore> lireFichier(String fichier){
+	public static ArrayList<LigneHighScore> lireFichier(String fichier){
 	ArrayList<LigneHighScore> l = new ArrayList<LigneHighScore>();
 
-	try{
-	    // s'assurer que le fichier et son répertoire existent
-	    try{
-		File ff = new File(fichier);
-		File parent = ff.getParentFile();
-		if(parent!=null && !parent.exists()) parent.mkdirs();
-		if(!ff.exists()) ff.createNewFile();
-	    }catch(Exception ex){ System.err.println("HighScore prepare file: "+ex.getMessage()); }
-	    BufferedReader reader = new BufferedReader(new FileReader(fichier));
-	    String currentLine;
-	    while ((currentLine = reader.readLine()) != null) {
-		l.add(new LigneHighScore(currentLine));
-	    }
-	    reader.close();
-	}catch(Exception e){ System.err.println("HighScore lireFichier: "+e.getMessage()); }
-	
-	return l;
-    }
+	fichier = resolveHighScorePath(fichier);
 
-    public static void enregistrerFichier(String fichier, ArrayList<LigneHighScore> list, String nom, int score){
+	try{
+		// s'assurer que le fichier et son répertoire existent
+		try{
+			File ff = new File(fichier);
+			File parent = ff.getParentFile();
+			if(parent!=null && !parent.exists()) parent.mkdirs();
+			if(!ff.exists()) ff.createNewFile();
+		}catch(Exception ex){ System.err.println("HighScore prepare file: "+ex.getMessage()); }
+		BufferedReader reader = new BufferedReader(new FileReader(fichier));
+		String currentLine;
+		while ((currentLine = reader.readLine()) != null) {
+		// ignorer les lignes vides ou ne contenant que des espaces
+		currentLine = currentLine.trim();
+		if(currentLine.length() == 0) continue;
+		l.add(new LigneHighScore(currentLine));
+		}
+		reader.close();
+	}catch(Exception e){ System.err.println("HighScore lireFichier: "+e.getMessage()); }
+    
+	return l;
+	}
+
+	public static void enregistrerFichier(String fichier, ArrayList<LigneHighScore> list, String nom, int score){
+	fichier = resolveHighScorePath(fichier);
 	int position=0;
 	boolean fin = false;
 	while(!fin){

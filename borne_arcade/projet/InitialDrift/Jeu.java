@@ -441,9 +441,14 @@ class Jeu{ // Définition de la classe
 		// petite pause de 3 secondes	
 		try{
 		    Thread.sleep(3000);
-		    tabEnnemis.clear();
 		}
 		catch(Exception e){}
+
+		// retirer les textures ennemies (explosions) de la fenetre avant de vider la liste
+		for(int ind2=0; ind2<tabEnnemis.size(); ind2++){
+		    try{ fen.supprimer(tabEnnemis.get(ind2).getTextureEnnemi()); }catch(Exception e){}
+		}
+		tabEnnemis.clear();
 
 		// Affichage de l'écran de fin de partie (GAME OVER)
 		if(score<50){
@@ -511,6 +516,16 @@ class Jeu{ // Définition de la classe
 		*/
 
 		HighScore.demanderEnregistrerNom(fen,clavier,null,score,"projet/InitialDrift/highscore");
+
+		// Nettoyer les entités de la partie précédente
+		for(int i=0;i<tabEnnemis.size();i++){
+		    try{ fen.supprimer(tabEnnemis.get(i).getTextureEnnemi()); }catch(Exception e){}
+		}
+		tabEnnemis.clear();
+		for(int i=0;i<tabDecor.size();i++){
+		    try{ fen.supprimer(tabDecor.get(i)); }catch(Exception e){}
+		}
+		tabDecor.clear();
 
 		// Après tentative d'enregistrement du highscore, revenir au menu et permettre de rejouer
 		try{ ac.arret(); }catch(Exception e){}

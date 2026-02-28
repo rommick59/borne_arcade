@@ -80,7 +80,7 @@ class HighScore{
 	String score=s+"";
 
 	char cprec[]={' ',' ',' '};
-	char c[]={'A',' ',' ','#'};
+	char c[]={'A','A','A'}; // trois lettres uniquement
 	char csuiv[]={' ',' ',' '};
 	int indexSelec=0;
 
@@ -101,8 +101,9 @@ class HighScore{
 	}
 	Texte highscore = new Texte(Couleur.NOIR, "H  I  G  H  S  C  O  R  E", font, new Point(640,950));
 	Texte scoreAtteint = new Texte(Couleur.NOIR, score, font, new Point(420,400));
-	Texte enterYourName = new Texte(Couleur.NOIR, "E n t e r   Y o u r   n a m e", font, new Point(640,800));
+	Texte enterYourName = new Texte(Couleur.NOIR, "Entrez vos 3 lettres", font, new Point(640,800));
 	Texte posNum = new Texte(Couleur.NOIR, (position+1)+"eme", font, new Point(120,400));
+	Texte instructions = new Texte(Couleur.NOIR, "F = valider | Haut/Bas : lettre | Gauche/Droite : position", font, new Point(640,720));
 
 	if(position==0)
 	    posNum.setTexte("1er");
@@ -110,11 +111,10 @@ class HighScore{
 	Texte posNumPrec = new Texte(Couleur.NOIR, "", font, new Point(120,580));
 	Texte posNumSuiv = new Texte(Couleur.NOIR, "", font, new Point(120,170));
 	
-	Texte caracteres[] = new Texte[4];
+	Texte caracteres[] = new Texte[3];
 	caracteres[0] = new Texte(Couleur.NOIR, c[0]+"", font, new Point(690,400));
 	caracteres[1] = new Texte(Couleur.NOIR, c[1]+"", font, new Point(840,400));
 	caracteres[2] = new Texte(Couleur.NOIR, c[2]+"", font, new Point(990,400));
-	caracteres[3] = new Texte(Couleur.NOIR, c[3]+"", font, new Point(1140,400));
 	Texte caracteresPrec[] = new Texte[3];
 	caracteresPrec[0] = new Texte(Couleur.NOIR, cprec[0]+"", font, new Point(690,580));
 	caracteresPrec[1] = new Texte(Couleur.NOIR, cprec[1]+"", font, new Point(840,580));
@@ -129,7 +129,6 @@ class HighScore{
 	Rectangle rect1 = new Rectangle(Couleur.NOIR,new Point(650,350), new Point(720,480), false);
 	Rectangle rect2 = new Rectangle(Couleur.NOIR,new Point(800,350), new Point(870,480), false);
 	Rectangle rect3 = new Rectangle(Couleur.NOIR,new Point(950,350), new Point(1020,480), false);
-	Rectangle rect4 = new Rectangle(Couleur.NOIR,new Point(1100,350), new Point(1170,480), false);
 	
 	Triangle select = new Triangle(Couleur.NOIR, new Point(690,340), new Point(670,300), new Point(710,300),true);
 
@@ -144,10 +143,10 @@ class HighScore{
 	f.ajouter(scorePrec);
 	f.ajouter(scoreSuiv);
 	f.ajouter(enterYourName);
+	f.ajouter(instructions);
 	f.ajouter(caracteres[0]);
 	f.ajouter(caracteres[1]);
 	f.ajouter(caracteres[2]);
-	f.ajouter(caracteres[3]);
 	f.ajouter(caracteresPrec[0]);
 	f.ajouter(caracteresPrec[1]);
 	f.ajouter(caracteresPrec[2]);
@@ -160,7 +159,6 @@ class HighScore{
 	f.ajouter(rect1);
 	f.ajouter(rect2);
 	f.ajouter(rect3);
-	f.ajouter(rect4);
 	f.ajouter(select);
 
 	if(position!=0){
@@ -191,7 +189,7 @@ class HighScore{
 	    }catch(Exception e){}
 
 	    if(clavier.getJoyJ1DroiteTape()){
-		if(indexSelec<3){
+		if(indexSelec<2){
 		    indexSelec++;
 		    select.translater(150,0);
 		}
@@ -205,20 +203,20 @@ class HighScore{
 	    }
 
 	    if(clavier.getJoyJ1HautTape()){
-		if(indexSelec!=3){
+		if(indexSelec<3){
 		    c[indexSelec]=suivant(c[indexSelec]);
 		    caracteres[indexSelec].setTexte(c[indexSelec]+"");
 		}
 	    }
 
 	    if(clavier.getJoyJ1BasTape()){
-		if(indexSelec!=3){
+		if(indexSelec<3){
 		    c[indexSelec]=precedent(c[indexSelec]);
 		    caracteres[indexSelec].setTexte(c[indexSelec]+"");
 		}
 	    }
 
-	    if(clavier.getBoutonJ1ATape() && indexSelec==3)
+	    if(clavier.getBoutonJ1ATape())
 		fin=true;
 	    
 	    f.rafraichir();
@@ -234,12 +232,12 @@ class HighScore{
 	try{ f.supprimer(scoreSuiv); }catch(Exception e){}
 	try{ f.supprimer(enterYourName); }catch(Exception e){}
 	try{ f.supprimer(posNum); }catch(Exception e){}
+	try{ f.supprimer(instructions); }catch(Exception e){}
 	try{ f.supprimer(posNumPrec); }catch(Exception e){}
 	try{ f.supprimer(posNumSuiv); }catch(Exception e){}
 	try{ f.supprimer(rect1); }catch(Exception e){}
 	try{ f.supprimer(rect2); }catch(Exception e){}
 	try{ f.supprimer(rect3); }catch(Exception e){}
-	try{ f.supprimer(rect4); }catch(Exception e){}
 	try{ f.supprimer(select); }catch(Exception e){}
 	for(int i=0;i<caracteres.length;i++){
 	    try{ f.supprimer(caracteres[i]); }catch(Exception e){}

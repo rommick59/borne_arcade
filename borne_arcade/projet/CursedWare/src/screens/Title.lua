@@ -53,6 +53,8 @@ local MusicSource = love.audio.newSource("assets/musics/Stairs.mp3", "static")
 MusicSource:setLooping(true)
 MusicSource:setVolume(0.1)
 
+local quitting = false
+
 -- Functions
 local function SelectionChanged(old)
     local o = love.audio.newSource("assets/sounds/UI/back_00" .. math.random(1, 4) .. ".ogg", "static")
@@ -91,13 +93,22 @@ functions["Credits"] = function()
 end
 
 functions["Quit"] = function() 
-    love.event.quit(0)
+    if quitting then return end
+    quitting = true
+
+    -- Arm quit on button release to avoid the same held press triggering a relaunch in the arcade menu
+    Controls.unbind(Input.player1.button1)
+    Controls.bind(Input.player1.button1, function(isDown)
+        if isDown then return end
+        love.event.quit(0)
+    end)
 end
 
 -- // Runners
 
 function Menu.open()
     Selected = 1
+    quitting = false
     MusicSource:play()
 
     -- Binds

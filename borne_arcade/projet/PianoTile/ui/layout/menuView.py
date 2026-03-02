@@ -65,10 +65,17 @@ class MenuView:
             rect_bouton = pygame.Rect(0, self.__windowManager.getScreenHeight() - 150, self.__windowManager.getScreenWidth(), 150)
             pygame.draw.rect(self.__windowManager.getWindow(), self.__windowManager.getColor().getViolet(), rect_bouton)
 
-            texts = ["Accueil", "Multijoueur", "Statistique", "Quitter"]
+            # Libellé dynamique selon le mode courant + typo distincte pour signaler le changement
+            is_multi = self.__windowManager.isMultiplayer()
+            label_mode = "Solo" if is_multi else "Multijoueur"
+            texts = ["Accueil", label_mode, "Statistique", "Quitter"]
+            fonts = [self.__windowManager.getFontTall(),
+                     self.__windowManager.getFontTall() if is_multi else self.__windowManager.getFontSmall(),
+                     self.__windowManager.getFontTall(),
+                     self.__windowManager.getFontTall()]
             for i, text in enumerate(texts):
                 x_center = self.__windowManager.getScreenWidth() * (i + 0.5) / 4
-                text_surface = self.__windowManager.getFontTall().render(text, True, self.__windowManager.getColor().getBlanc())
+                text_surface = fonts[i].render(text, True, self.__windowManager.getColor().getBlanc())
                 text_rect = text_surface.get_rect(center=(x_center, self.__windowManager.getScreenHeight() - 75))
                 self.__windowManager.getWindow().blit(text_surface, text_rect)
 
@@ -93,10 +100,3 @@ class MenuView:
         if page in self.__pageViews.keys():
             self.__pageViews[page].affichagePage()
             
-        elif page != PageState.ACCUEIL:
-            # Par defaut, afficher un message ou rien
-            font = self.__windowManager.getFontTall()
-            color = self.__windowManager.getColor().getBlanc()
-            text = font.render("Page inconnue", True, color)
-            rect = text.get_rect(center=(self.__windowManager.getScreenWidth() // 2, 200))
-            window.blit(text, rect)

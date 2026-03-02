@@ -53,6 +53,20 @@ class Logic:
                         self.getInterface().setUpdate(True)
                     elif (self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0] == "Multijoueur"):
                         self.getInterface().setPage(PageState.MULTIJOUEUR)
+                        # Reste sur le bouton bas pour retoggle rapidement
+                        selection = self.getInterface().getWindowManager().getSelection()
+                        if selection and selection.getSelection():
+                            selection_dict = selection.getSelection()[1]
+                            bottom_y = max(pos[1] for pos in selection_dict.keys()) if selection_dict else 0
+                            selection.setPosition((1, bottom_y))
+                        self.getInterface().setUpdate(True)
+                    elif (self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0] == "Solo"):
+                        self.getInterface().setPage(PageState.ACCUEIL)
+                        selection = self.getInterface().getWindowManager().getSelection()
+                        if selection and selection.getSelection():
+                            selection_dict = selection.getSelection()[1]
+                            bottom_y = max(pos[1] for pos in selection_dict.keys()) if selection_dict else 0
+                            selection.setPosition((1, bottom_y))
                         self.getInterface().setUpdate(True)
                     elif (self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0] == "Statistique"):
                         self.getInterface().setPage(PageState.STATISTIQUE)
@@ -296,6 +310,8 @@ class Logic:
                         self.getInterface().setPage(PageState.ACCUEIL)
                         self.getInterface().setUpdate(True)
                     elif (self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0] == "Multijoueur"):
+                        # Basculer immédiatement en mode multi pour refléter le label/typo
+                        self.getInterface().getWindowManager().setMultiplayer(True)
                         self.getInterface().setPage(PageState.MULTIJOUEUR)
                         self.getInterface().setUpdate(True)
                     elif (self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0] == "Statistique"):
@@ -327,6 +343,7 @@ class Logic:
                         self.getInterface().setPage(PageState.ACCUEIL)
                         self.getInterface().setUpdate(True)
                     elif (self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0] == "Multijoueur"):
+                        self.getInterface().getWindowManager().setMultiplayer(True)
                         self.getInterface().setPage(PageState.MULTIJOUEUR)
                         self.getInterface().setUpdate(True)
                     elif (self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0] == "Statistique"):
@@ -405,45 +422,95 @@ class Logic:
                     running = True
                     game_started = False
 
-                    # Recréer un nouveau GameView
-                    new_game_view = GameView(self.getInterface().getWindowManager())
-                    self.getInterface().getWindowManager().setGame(new_game_view)
+                    wm = self.getInterface().getWindowManager()
 
-                    game_view = new_game_view
-                    piano = game_view.getPiano()
+                    if wm.isMultiplayer():
+                        # Split-screen : deux GameView côte à côte
+                        half_width = wm.getScreenWidth() // 2
+                        game_left = GameView(wm, offset_x=0, area_width=half_width)
+                        game_right = GameView(wm, offset_x=half_width, area_width=half_width)
 
-                    while running:
-                        for event in pygame.event.get():
-                            if event.type == pygame.QUIT:
-                                pygame.quit()
-                                exit()
+                        # On conserve le GameView principal (gauche) pour la compatibilité éventuelle
+                        wm.setGame(game_left)
 
-                        keys = pygame.key.get_pressed()
-                        for key in self.getButton().getAll().keys():
-                            if keys[key]:
-                                game_view.checkHit(self.getButton().update(
-                                    pygame.event.Event(pygame.KEYDOWN, key=key, unicode=pygame.key.name(key))))
+                        while running:
+                            for event in pygame.event.get():
+                                if event.type == pygame.QUIT:
+                                    pygame.quit()
+                                    exit()
+                                if event.type == pygame.KEYDOWN:
+                                    # Joueur 1 (gauche)
+                                    if event.key in (pygame.K_r, pygame.K_t, pygame.K_y, pygame.K_f, pygame.K_g):
+                                        col = {pygame.K_r: 0, pygame.K_t: 1, pygame.K_y: 2, pygame.K_f: 3, pygame.K_g: 4}.get(event.key)
+                                        game_left.checkHit(col)
+                                    # Joueur 2 (droite)
+                                    if event.key in (pygame.K_a, pygame.K_z, pygame.K_e, pygame.K_q, pygame.K_s):
+                                        col = {pygame.K_a: 0, pygame.K_z: 1, pygame.K_e: 2, pygame.K_q: 3, pygame.K_s: 4}.get(event.key)
+                                        game_right.checkHit(col)
 
-                        self.getInterface().getWindowManager().getWindow().fill((30, 30, 30))
+                            wm.getWindow().fill((30, 30, 30))
 
-                        if not game_started:
-                            timer.draw()
-                            if timer.getFinished():
-                                piano.play()
-                                game_started = True
+                            if not game_started:
+                                timer.draw()
+                                if timer.getFinished():
+                                    game_left.getPiano().play()  # une seule lecture pour les deux
+                                    game_started = True
+                                    self.getInterface().setUpdate(True)
+                            else:
+                                game_left.update()
+                                game_right.update()
+                                game_left.affichagePiano()
+                                game_right.affichagePiano()
                                 self.getInterface().setUpdate(True)
-                        else:
-                            game_view.update()
-                            game_view.affichagePiano()
-                            self.getInterface().setUpdate(True)
 
-                            if game_view.isGameOver():
-                                pygame.mixer.music.stop()
-                                running = False
+                                if game_left.isGameOver() or game_right.isGameOver():
+                                    pygame.mixer.music.stop()
+                                    running = False
+                                    self.getInterface().setUpdate(True)
+
+                            pygame.display.flip()
+                            clock.tick(60)
+
+                    else:
+                        # Mode solo inchangé
+                        new_game_view = GameView(wm)
+                        wm.setGame(new_game_view)
+
+                        game_view = new_game_view
+                        piano = game_view.getPiano()
+
+                        while running:
+                            for event in pygame.event.get():
+                                if event.type == pygame.QUIT:
+                                    pygame.quit()
+                                    exit()
+
+                            keys = pygame.key.get_pressed()
+                            for key in self.getButton().getAll().keys():
+                                if keys[key]:
+                                    game_view.checkHit(self.getButton().update(
+                                        pygame.event.Event(pygame.KEYDOWN, key=key, unicode=pygame.key.name(key))))
+
+                            wm.getWindow().fill((30, 30, 30))
+
+                            if not game_started:
+                                timer.draw()
+                                if timer.getFinished():
+                                    piano.play()
+                                    game_started = True
+                                    self.getInterface().setUpdate(True)
+                            else:
+                                game_view.update()
+                                game_view.affichagePiano()
                                 self.getInterface().setUpdate(True)
 
-                        pygame.display.flip()
-                        clock.tick(60)
+                                if game_view.isGameOver():
+                                    pygame.mixer.music.stop()
+                                    running = False
+                                    self.getInterface().setUpdate(True)
+
+                            pygame.display.flip()
+                            clock.tick(60)
 
             elif isinstance(direction, tuple):
                 self.getInterface().getWindowManager().getSelection().updatePosition(direction)
@@ -477,6 +544,7 @@ class Logic:
                         self.getInterface().setUpdate(True)
                     elif "Play " in self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0]:
                         self.getInterface().getWindowManager().setMusicSelect(self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0].replace("Play musique ", ""))
+                        self.getInterface().getWindowManager().setMultiplayer(False)
                         self.getInterface().setPage(PageState.PLAY)
                         self.getInterface().setUpdate(True)
                     elif (self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0] == "Multijoueur"):
@@ -506,9 +574,16 @@ class Logic:
                         self.getInterface().setPage(self.getInterface().getPagePrecedente())
                         self.getInterface().setUpdate(True)
                     elif (self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0] == "Accueil"):
+                        self.getInterface().getWindowManager().setMultiplayer(False)
+                        self.getInterface().setPage(PageState.ACCUEIL)
+                        self.getInterface().setUpdate(True)
+                    elif (self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0] == "Solo"):
+                        # Bascule vers solo depuis la page multi
+                        self.getInterface().getWindowManager().setMultiplayer(False)
                         self.getInterface().setPage(PageState.ACCUEIL)
                         self.getInterface().setUpdate(True)
                     elif (self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0] == "Multijoueur"):
+                        self.getInterface().getWindowManager().setMultiplayer(True)
                         self.getInterface().setPage(PageState.MULTIJOUEUR)
                         self.getInterface().setUpdate(True)
                     elif (self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0] == "Statistique"):
@@ -516,6 +591,12 @@ class Logic:
                         self.getInterface().setUpdate(True)
                     elif (self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0] == "Quitter"):
                         self.getInterface().setPage(PageState.QUITTER)
+                        self.getInterface().setUpdate(True)
+                    elif "Play " in self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0]:
+                        # Lancer en mode multi local (split screen)
+                        self.getInterface().getWindowManager().setMusicSelect(self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0].replace("Play musique ", ""))
+                        self.getInterface().getWindowManager().setMultiplayer(True)
+                        self.getInterface().setPage(PageState.PLAY)
                         self.getInterface().setUpdate(True)
                 elif isinstance(direction, tuple):  
                     self.getInterface().getWindowManager().getSelection().updatePosition(direction)

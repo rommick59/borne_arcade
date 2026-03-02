@@ -12,7 +12,11 @@ from ui.layout.sortedView import SortedView
 class WindowManager:
     def __init__(self, interface):
         self.__interface = interface
-        self.__window = pygame.display.set_mode((pygame.display.Info().current_w, pygame.display.Info().current_h), pygame.DOUBLEBUF)
+        # Plein ecran pour occuper tout l'affichage de la borne
+        self.__window = pygame.display.set_mode(
+            (pygame.display.Info().current_w, pygame.display.Info().current_h),
+            pygame.FULLSCREEN | pygame.DOUBLEBUF,
+        )
         self.__screenWidth = pygame.display.Info().current_w
         self.__screenHeight = pygame.display.Info().current_h
         self.__fontTall = pygame.font.Font('./assets/font/Tinos-Regular.ttf', 40)
@@ -22,6 +26,7 @@ class WindowManager:
         self.__sorted: SortedView = SortedView(self)
         self.__musicSelect: str = None
         self.__currentUser: Player = Player(0, "Invité", "invite")
+        self.__isMultiplayer: bool = False
         self.__areaMusic: pygame.Rect = pygame.Rect(50, 200, self.__screenWidth - 100, self.__screenHeight - 375)
         self.__background: BackgroundView = BackgroundView(self)
         self.__music: MusicView = MusicView(self)
@@ -53,6 +58,12 @@ class WindowManager:
     
     def getMusicSelect(self):
         return self.__musicSelect
+
+    def setMultiplayer(self, isMulti: bool):
+        self.__isMultiplayer = isMulti
+
+    def isMultiplayer(self) -> bool:
+        return self.__isMultiplayer
     
     def getCurrentUser(self):
         return self.__currentUser

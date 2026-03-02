@@ -57,6 +57,19 @@ class Interface:
             self.setPagePrecedente(self.__page)
             self.__page = page
 
+        # Repartir en haut de la liste et reconstruire les selections quand on arrive sur Accueil ou Multijoueur
+        if page in (PageState.ACCUEIL, PageState.MULTIJOUEUR):
+            wm = self.getWindowManager()
+            wm.setScrollOffset(0)
+            selection_view = wm.getSelection()
+            # Reconstruit la grille des musiques (meme base que l'accueil)
+            if page == PageState.ACCUEIL:
+                selection_view.setSelectionFull((0, 0), selection_view.create_ACCUEIL_selections())
+                wm.setMultiplayer(False)
+            else:
+                selection_view.setSelectionFull((0, 0), selection_view.create_MULTIJOUER_selections())
+                wm.setMultiplayer(True)
+
     def setPagePrecedente(self, pagePrecedente):
         """ Met a jour la page precedente'. """
         self.__pagePrecedente = pagePrecedente
@@ -117,8 +130,10 @@ class Interface:
         self.getWindowManager().getSelection().affichageSelection()
 
     def affichagePageMultijoueur(self):
-        self.getWindowManager().getBackground().affichageFondEcran(Image.Page.MULTIJOUEUR)   
+        self.getWindowManager().getBackground().affichageFondEcran(Image.Page.MULTIJOUEUR)
         self.getWindowManager().getMenu().affichageMenu()
+        # Affiche la même liste de musiques que sur l'accueil pour le multi
+        self.getWindowManager().getMusic().affichageListeMusique()
         self.getWindowManager().getSelection().affichageSelection() 
 
     def affichagePageStatistique(self):

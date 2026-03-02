@@ -575,7 +575,7 @@ if __name__ == "__main__":
 
         # === Exemple utilisation ===
         # r = client.generate_text(
-        #     model="gemma2:latest", prompt="Bonjour, t'es qui ?")
+        #     model="qwen3:8b", prompt="Bonjour, t'es qui ?")
         # print("Generate:", r.response)
         
         

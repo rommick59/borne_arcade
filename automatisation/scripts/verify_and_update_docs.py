@@ -17,7 +17,7 @@ class DocumentationManager:
     def __init__(
         self,
         projects_dir: str = "borne_arcade/projet",
-        model: str = "gemma2:latest",
+        model: str = "qwen3:8b",
         force_update: bool = False,
     ):
         self.projects_dir = Path(projects_dir)

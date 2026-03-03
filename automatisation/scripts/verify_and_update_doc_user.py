@@ -162,7 +162,7 @@ Ton rôle est de produire un guide utilisateur clair, agréable et accessible.
 
 INFOS : 
 - L'url du dépot:  https://github.com/rommick59/borne_arcade
-- 
+- Il suffit de lancer ./automatisation/install.sh pour avoir l'install et la verification de deprecated, readme, docs technique et docs user.
 
 Règles STRICTES :
 - Écris en français, dans un langage simple et non technique

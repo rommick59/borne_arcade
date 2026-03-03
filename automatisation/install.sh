@@ -144,7 +144,7 @@ main() {
 
     # === 1. Lancer la borne ===
     cd "$SCRIPT_DIR/../borne_arcade" || exit 1
-    #bash lancerBorne.sh
+    bash lancerBorne.sh
 
     # === 2. Revenir dans borne ===
     cd "$SCRIPT_DIR/.." || exit 1

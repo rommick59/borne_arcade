@@ -5,7 +5,7 @@ force = "--force" in sys.argv or "-f" in sys.argv
 
 # Verifier les deprecated warnings et erreurs dans les logs de compilation, et generer un rapport structuré en markdown
 from verif_deprecated import DeprecatedAnalyzer
-# DeprecatedAnalyzer().run()
+DeprecatedAnalyzer().run()
 
 # Verifier et mettre à jour les README des projets dans borne_arcade/projet
 from verify_and_update_readme import ReadmeManager

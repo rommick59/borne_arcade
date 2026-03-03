@@ -4,14 +4,59 @@ from typing import Dict, Set
 from ollama_wrapper import OllamaConnectionError, OllamaWrapper
 
 
-class DocumentationManager:
+SUPPORTED_EXTENSIONS = {".java", ".lua", ".py"}
+
+LANGUAGE_MAP = {
+    ".py": "python",
+    ".java": "java",
+    ".lua": "lua",
+}
+
+SYSTEM_PROMPTS = {
+    "python": """
+Tu es un expert Python. Tu reçois un fichier Python et tu dois y ajouter des docstrings Google Style complètes.
+
+Règles STRICTES :
+- Ajoute une docstring de module en haut du fichier si absente
+- Ajoute des docstrings à chaque classe, méthode et fonction
+- Les docstrings doivent être précises, en français, et décrire paramètres (Args:), retours (Returns:) et exceptions (Raises:) si applicable
+- Tu peux ajouter des commentaires inline pour clarifier des sections complexes, mais privilégie les docstrings
+- NE modifie PAS la logique du code, uniquement la documentation
+- Renvoie UNIQUEMENT le fichier Python complet, sans aucun commentaire, sans balises markdown, sans explication
+""",
+
+    "java": """
+Tu es un expert Java. Tu reçois un fichier Java et tu dois y ajouter des Javadocs complètes.
+
+Règles STRICTES :
+- Ajoute une Javadoc à chaque classe, interface, méthode et attribut public
+- Utilise les tags @param, @return, @throws selon les cas
+- Les commentaires doivent être précis, en français
+- NE modifie PAS la logique du code, uniquement la documentation
+- Renvoie UNIQUEMENT le fichier Java complet, sans aucun commentaire, sans balises markdown, sans explication
+""",
+
+    "lua": """
+Tu es un expert Lua. Tu reçois un fichier Lua et tu dois y ajouter des commentaires de documentation LuaDoc complètes.
+
+Règles STRICTES :
+- Ajoute un bloc de commentaire de module en haut du fichier si absent
+- Documente chaque fonction avec les tags LuaDoc : --- description, @param, @return
+- Les commentaires doivent être précis, en français
+- NE modifie PAS la logique du code, uniquement la documentation
+- Renvoie UNIQUEMENT le fichier Lua complet, sans aucun commentaire, sans balises markdown, sans explication
+""",
+}
+
+
+class DocsManager:
     """
-    Gestionnaire d'audit et de mise à jour automatique des documentations
-    des projets dans borne_arcade/projet.
+    Gestionnaire d'audit et de mise à jour automatique de la documentation
+    inline des fichiers source (.py, .java, .lua) dans borne_arcade/projet.
 
     Modes :
-    - Normal : met à jour uniquement les projets modifiés via git
-    - Force : met à jour TOUS les projets en ignorant git
+    - Normal : met à jour uniquement les fichiers des projets modifiés via git
+    - Force : met à jour TOUS les fichiers éligibles en ignorant git
     """
 
     def __init__(
@@ -24,14 +69,12 @@ class DocumentationManager:
         self.model = model
         self.force_update = force_update
         self.client = OllamaWrapper()
-        
+
         self.IGNORED_PATTERNS = {
-        # Dossiers
-        "__pycache__", ".git", ".idea", ".vscode",
-        "node_modules", ".mypy_cache", ".pytest_cache",
-        # Extensions
-        ".pyc", ".pyo", ".pyd", ".egg-info",
-        ".DS_Store", ".env",
+            "__pycache__", ".git", ".idea", ".vscode",
+            "node_modules", ".mypy_cache", ".pytest_cache",
+            ".pyc", ".pyo", ".pyd", ".egg-info",
+            ".DS_Store", ".env",
         }
 
     # ==========================================================
@@ -63,109 +106,65 @@ class DocumentationManager:
 
         return changed_projects
 
-    def get_project_diff(self, project_name: str) -> str:
+    def get_file_diff(self, file_path: Path) -> str:
         """
-        Retourne le diff git uniquement pour un projet spécifique.
+        Retourne le diff git pour un fichier spécifique.
         """
         if self.force_update:
             return "FORCED_UPDATE"
 
         try:
             diff = subprocess.check_output(
-                [
-                    "git",
-                    "diff",
-                    "HEAD",
-                    "--",
-                    f"{self.projects_dir}/{project_name}",
-                ]
+                ["git", "diff", "HEAD", "--", str(file_path)]
             ).decode()
             return diff
         except subprocess.CalledProcessError:
             return ""
 
     # ==========================================================
-    # ---------------- ANALYSE PROJET --------------------------
+    # ---------------- ANALYSE FICHIER -------------------------
     # ==========================================================
 
-    def get_structure(self, project_path: Path) -> str:
-        structure = []
-
+    def collect_source_files(self, project_path: Path):
+        """
+        Génère tous les fichiers source supportés (.py, .java, .lua)
+        dans un projet, en ignorant les patterns exclus.
+        """
         for path in project_path.rglob("*"):
+            if not path.is_file():
+                continue
+
             relative = path.relative_to(project_path)
             parts = relative.parts
 
             if any(part in self.IGNORED_PATTERNS for part in parts):
                 continue
 
-            if path.suffix in self.IGNORED_PATTERNS:
-                continue
-
-            structure.append(str(relative))
-
-        return "\n".join(sorted(structure))
-
-    def get_doc_content(self, project_path: Path) -> str:
-        readme = project_path / "README.md"
-        if readme.exists():
-            return readme.read_text(encoding="utf-8")
-        return ""
-
-    def analyze_project(self, project_path: Path) -> Dict:
-        return {
-            "name": project_path.name,
-            "structure": self.get_structure(project_path),
-            "doc_content": self.get_doc_content(project_path),
-        }
+            if path.suffix in SUPPORTED_EXTENSIONS:
+                yield path
 
     # ==========================================================
     # --------------------- IA SECTION -------------------------
     # ==========================================================
 
-    def build_prompt(self, data: Dict, diff: str) -> str:
+    def get_system_prompt(self, lang: str) -> str:
+        return SYSTEM_PROMPTS.get(lang, "")
+
+    def build_prompt(self, file_path: Path, source_code: str) -> str:
         return f"""
-        PROJET : {data['name']}
+        Fichier : {file_path.name}
 
-        MODE FORCE : {"OUI" if self.force_update else "NON"}
+        Voici le contenu du fichier :
 
-        CHANGEMENTS RECENTS :
-        {diff}
-
-        STRUCTURE :
-        {data['structure']}
-
-        DOCUMENTATION ACTUELLE :
-        {data['doc_content']}
+        {source_code}
         """
 
-    def get_system_prompt(self) -> str:
-        return """
-        Tu es un auditeur technique STRICT et exigeant.
-
-        Une documentation est considérée VALIDE UNIQUEMENT si :
-
-        1) Elle est écrite en français impeccable
-        2) Elle suit EXACTEMENT la structure obligatoire
-        3) Chaque section contient un contenu précis et exploitable
-        4) Elle correspond réellement à la structure du projet fournie
-        5) Elle n'est ni vague, ni minimale, ni marketing
-        6) Les sections ne sont pas vides
-
-        Si la documentation respecte STRICTEMENT tous les critères :
-        Réponds uniquement :
-        DOC_OK
-
-        Sinon :
-        Renvoie uniquement la documentation complète en Markdown.
-        Aucun commentaire supplémentaire.
-        """
-
-    def call_llm(self, prompt: str) -> str:
+    def call_llm(self, prompt: str, lang: str) -> str:
         try:
             response = self.client.generate_text(
                 model=self.model,
                 prompt=prompt,
-                system=self.get_system_prompt(),
+                system=self.get_system_prompt(lang),
             )
             return response.response.strip()
 
@@ -177,35 +176,82 @@ class DocumentationManager:
             print("Erreur inattendue lors de l'appel LLM :", e)
             return "LLM_ERROR"
 
-
     # ==========================================================
     # --------------------- CORE LOGIC -------------------------
     # ==========================================================
 
-    def verify_and_update(self, project_path: Path):
-        project_name = project_path.name
-
-        diff = self.get_project_diff(project_name)
+    def verify_and_update_file(self, file_path: Path):
+        diff = self.get_file_diff(file_path)
 
         if not self.force_update and not diff.strip():
-            print(f"{project_name} : aucun changement détecté")
+            print(f"  {file_path.name} : aucun changement détecté")
             return
 
-        data = self.analyze_project(project_path)
-        prompt = self.build_prompt(data, diff)
+        lang = LANGUAGE_MAP.get(file_path.suffix)
+        if not lang:
+            return
 
-        result = self.call_llm(prompt)
+        source_code = file_path.read_text(encoding="utf-8")
+        prompt = self.build_prompt(file_path, source_code)
+
+        result = self.call_llm(prompt, lang)
 
         if result == "LLM_ERROR":
-            print(f"{project_name} : mise à jour annulée (LLM indisponible)")
+            print(f"  {file_path.name} : mise à jour annulée (LLM indisponible)")
             return
 
-        if result == "DOC_OK":
-            print(f"{project_name} : documentation OK")
-        else:
-            print(f"Mise à jour doc : {project_name}")
-            readme_path = project_path / "README.md"
-            readme_path.write_text(result, encoding="utf-8")
+        print(f"  Mise à jour docs : {file_path.name}")
+        result = self.strip_markdown_fences(result)
+        file_path.write_text(result, encoding="utf-8")
+
+    def process_project(self, project_path: Path):
+        print(f"\nProjet : {project_path.name}")
+        source_files = list(self.collect_source_files(project_path))
+
+        if not source_files:
+            print("  Aucun fichier source trouvé.")
+            return
+
+        for file_path in source_files:
+            self.verify_and_update_file(file_path)
+            
+    def strip_markdown_fences(content: str) -> str:
+        """Supprimer les ``` au début et a la fin si present dans le document.
+
+        Args:
+            content (str): Le fichier a verifier
+
+        Returns:
+            str: Le fichier nettoyer
+        """
+        lines = content.splitlines()
+
+        if lines and lines[0].startswith("```"):
+            lines = lines[1:]
+
+        if lines and lines[-1].startswith("```"):
+            lines = lines[:-1]
+
+        return "\n".join(lines)
+    
+    def update_file_doc(self, project_name: str, filename: str):
+        """Met a jour un document spécifique
+
+        Args:
+            project_name (str): Le nom du projet
+            filename (str): Le nom du fichier.
+        """
+        file_path = self.projects_dir / project_name / filename
+
+        if not file_path.exists():
+            print(f"Fichier introuvable : {file_path}")
+            return
+
+        if file_path.suffix not in SUPPORTED_EXTENSIONS:
+            print(f"Extension non supportée : {file_path.suffix}")
+            return
+
+        self.verify_and_update_file(file_path)
 
     # ==========================================================
     # ----------------------- ENTRY ----------------------------
@@ -230,7 +276,7 @@ class DocumentationManager:
 
         for project in self.projects_dir.iterdir():
             if project.is_dir() and project.name in projects_to_process:
-                self.verify_and_update(project)
+                self.process_project(project)
 
 
 # ==============================================================
@@ -238,5 +284,6 @@ class DocumentationManager:
 # ==============================================================
 
 if __name__ == "__main__":
-    manager = DocumentationManager(force_update=True)
+    manager = DocsManager(force_update=True)
     manager.run()
+    # manager.update_file_doc("ball-blast", "main.py")

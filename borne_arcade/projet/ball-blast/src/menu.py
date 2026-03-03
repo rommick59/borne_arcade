@@ -1,17 +1,51 @@
+"""
+Module contenant la gestion de l'interface de menu du jeu
+"""
+
 import pygame
 
 from constantes import WHITE, BLACK, RED, GREEN, BLUE, SCREEN_WIDTH, SCREEN_HEIGHT, FONT
 
 
 class Menu():
+    """
+    Classe gérant l'interface de menu du jeu
+    
+    Attributes:
+        screen (pygame.Surface): Surface de dessin de l'écran
+        selectedOption (int): Option sélectionnée dans le menu
+        texture (pygame.Surface): Texture d'arrière-plan du menu
+    """
+    
     def __init__(self, screen: pygame.Surface):
+        """
+        Initialise l'objet menu
+        
+        Args:
+            screen (pygame.Surface): Surface de dessin de l'écran
+        """
         self.screen: pygame.Surface = screen
         self.selectedOption: int = 0
         self.texture: pygame.Surface = pygame.transform.scale(
             pygame.image.load('./assets/bg_pxl.jpg').convert(), (SCREEN_WIDTH, SCREEN_HEIGHT))
-        #self.sonMenu = sonMenu
-
-    def showMenu(self, keyEvent, pause: bool = False) -> bool:
+    
+    def showMenu(self, keyEvent, pause: bool = False) -> tuple[bool, bool, bool]:
+        """
+        Affiche l'interface de menu et gère les interactions
+        
+        Args:
+            keyEvent: Événements clavier
+            pause (bool): Indique si le menu est affiché en pause
+            
+        Returns:
+            tuple[bool, bool, bool]: 
+                - goTogame: Indique si le jeu doit reprendre
+                - newGame: Indique si une nouvelle partie doit commencer
+                - credits: Indique si l'écran des crédits doit s'afficher
+            
+        Raises:
+            None
+        """
         newGame: bool = False
         credits: bool = False
         if pause:
@@ -23,20 +57,18 @@ class Menu():
         for event in keyEvent:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_DOWN:
-                    #pygame.mixer.Sound.play(self.sonMenu)
                     if self.selectedOption == numberOfOptions:
                         self.selectedOption = 0
                     else:
                         self.selectedOption += 1
+
                 if event.key == pygame.K_UP:
-                    #pygame.mixer.Sound.play(self.sonMenu)
                     if self.selectedOption == 0:
                         self.selectedOption = numberOfOptions
                     else:
                         self.selectedOption -= 1
 
                 if event.key == pygame.K_r:
-                    #pygame.mixer.Sound.play(self.sonMenu)
                     if pause:
                         if self.selectedOption == 0:
                             goTogame = True
@@ -99,8 +131,16 @@ class Menu():
 
         return goTogame, newGame, credits
     
-    def showCredits(self):
-        """Affiche l'écran des crédits"""
+    def showCredits(self) -> bool:
+        """
+        Affiche l'écran des crédits et gère la navigation
+        
+        Returns:
+            bool: True si l'écran des crédits doit rester affiché, False pour revenir au menu
+            
+        Raises:
+            None
+        """
         self.screen.blit(self.texture, (0, 0))
         
         # Titre "PRODUIT PAR:"
@@ -127,4 +167,3 @@ class Menu():
             return False
         
         return True
-        

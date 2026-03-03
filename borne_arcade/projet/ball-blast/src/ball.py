@@ -7,11 +7,44 @@ from constantes import RED, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE, BALL_SPEED_X, BA
 pygame.init()
 font = pygame.font.SysFont('Arial', 24)
 
+"""
+Module ball
+
+Ce module contient la classe Ball qui représente une balle dans un jeu. La balle possède une forme irrégulière, des points de vie, et des mécaniques de collision.
+"""
+
 class Ball(pygame.sprite.Sprite):
+    """
+    Classe représentant une balle dans un jeu. La balle possède une forme irrégulière, des points de vie, et des mécaniques de collision.
+
+    Attributes:
+        image: Surface pygame représentant la balle
+        level: Niveau de la balle
+        life: Nombre de vies restantes
+        color: Couleur de la balle
+        radius: Rayon de la balle
+        points: Points de la forme irrégulière
+        life_points: Points de vie affichés
+        mask: Masque de collision
+        rect: Rectangle de collision
+        speed_y: Vitesse verticale
+        speed_x: Vitesse horizontale
+    """
+
     def __init__(self, x: int, y: int, radius: int, level: int = 0, color = RED):
+        """
+        Constructeur de la classe Ball.
+
+        Args:
+            x: Position x de la balle
+            y: Position y de la balle
+            radius: Rayon de la balle
+            level: Niveau de la balle (par défaut 0)
+            color: Couleur de la balle (par défaut RED)
+        """
         super().__init__()
         # Créer une surface transparente
-        self.image = pygame.Surface((radius*2, radius*2), pygame.SRCALPHA)
+        self.image = pygame.Surface((radius*2, radius*3), pygame.SRCALPHA)
         self.level: int = level
         self.life: int = 3
         self.color = color
@@ -43,7 +76,12 @@ class Ball(pygame.sprite.Sprite):
         self.speed_x: int = random.randint(1*BALL_SPEED_X, 2*BALL_SPEED_X) * (-1)**random.randint(1, 2)
     
     def _generate_rock_shape(self):
-        """Génère des points pour créer une forme de roche irrégulière"""
+        """
+        Génère des points pour créer une forme de roche irrégulière.
+
+        Returns:
+            Liste de points (x, y) formant la forme irrégulière.
+        """
         points = []
         num_points = random.randint(6, 8)  # Nombre de points du polygone
         
@@ -57,6 +95,9 @@ class Ball(pygame.sprite.Sprite):
         return points
     
     def update(self):
+        """
+        Met à jour la position de la balle et gère les collisions.
+        """
         self.rect.y += self.speed_y
         self.rect.x += self.speed_x
         
@@ -64,6 +105,12 @@ class Ball(pygame.sprite.Sprite):
         self.speed_y = random.randint(BALL_TOP_BOUNCE, BALL_BOTTOM_BOUNCE) if self.rect.bottom > SCREEN_HEIGHT else self.speed_y + BALL_SPEED_FALL
         
     def take_damage(self) -> bool:
+        """
+        Réduit les points de vie de la balle. Retourne True si la balle est détruite.
+
+        Returns:
+            bool: True si la balle est détruite (points de vie == 0), False sinon.
+        """
         self.life_points -= 1
         
         self.life_points_surface = font.render(str(self.life_points), True, WHITE)
@@ -79,13 +126,23 @@ class Ball(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         return self.life_points == 0
         
-        
     def decale(self, decale: int):
+        """
+        Déplace la balle horizontalement de 'decale' pixels.
+
+        Args:
+            decale: Nombre de pixels à déplacer (positif ou négatif)
+        """
         self.rect.x += decale
         
         if self.speed_x * decale < 0:
             self.speed_x *= -1
     
-        
     def level(self)->int:
+        """
+        Retourne le niveau de la balle.
+
+        Returns:
+            int: Niveau de la balle
+        """
         return self.level

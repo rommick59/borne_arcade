@@ -93,8 +93,8 @@ def end_screen(screen, font, score, total_notes, max_combo):
     percent_txt = font.render(f"Précision : {percent:.1f}%", True, (0, 255, 255))
     combo_txt = font.render(f"Combo max : {max_combo}", True, (255, 255, 0))
     retry = font.render("Entrée : Rejouer", True, (200, 200, 200))
-    menu = font.render("M : Menu", True, (200, 200, 200))
-    quit_ = font.render("Q : Quitter", True, (200, 200, 200))
+    menu = font.render("T : Menu", True, (200, 200, 200))
+    quit_ = font.render("Y : Quitter", True, (200, 200, 200))
     screen.blit(title, (SCREEN_WIDTH // 2 - title.get_width() // 2, 180))
     screen.blit(score_txt, (SCREEN_WIDTH // 2 - score_txt.get_width() // 2, 250))
     screen.blit(percent_txt, (SCREEN_WIDTH // 2 - percent_txt.get_width() // 2, 300))
@@ -111,9 +111,9 @@ def end_screen(screen, font, score, total_notes, max_combo):
             elif event.type == pygame.KEYDOWN:
                 if event.key == MENU_RETRY_KEY:
                     return "retry"
-                elif event.key == MENU_BACK_TO_MENU_KEY:
+                elif event.key == pygame.K_t or event.key == MENU_BACK_TO_MENU_KEY:
                     return "menu"
-                elif event.key == MENU_QUIT_KEY:
+                elif event.key == pygame.K_y or event.key == MENU_QUIT_KEY:
                     return "quit"
 
 

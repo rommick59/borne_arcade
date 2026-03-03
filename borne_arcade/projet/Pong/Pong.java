@@ -40,10 +40,11 @@ public class Pong {
     
     private int status;
     
-    private int largeurItem = 300, hauteurItem = 50;;
-    private int margeSelection = 10;
+	private int largeurItem = 300, hauteurItem = 50;;
+	private int margeSelection = 10;
+	private int offsetTexteY = 12; // remonte légèrement le texte pour le centrer visuellement
     
-    private int yItems = 200;
+	private int yItems = 200;
     
     private FenetrePleinEcran f;
     
@@ -103,16 +104,18 @@ public class Pong {
     	
     	
     	Texte texteJouer=new Texte(Couleur.NOIR,"PLAY",new Font("Calibri", Font.TYPE1_FONT, 40),new Point());
-    	texteJouer.setA(new Point(((largeur-texteJouer.getLargeur())/2),yItems+(hauteurItem-texteJouer.getHauteur())/2));
+		int centreX = (largeur-largeurItem)/2;
+		// centrage horizontal + léger offset vertical pour compenser le rendu de police
+		texteJouer.setA(new Point(largeur/2, yItems + (hauteurItem-texteJouer.getHauteur())/2 + offsetTexteY)); 
  	    
     	f.ajouter(texteJouer);
  	    
- 	    Texte texteExit=new Texte(Couleur.NOIR,"EXIT",new Font("Calibri", Font.TYPE1_FONT, 40),new Point());
- 	   texteExit.setA(new Point(((largeur-texteExit.getLargeur())/2),(yItems+hauteurItem-texteExit.getHauteur())/2));
+  	    Texte texteExit=new Texte(Couleur.NOIR,"EXIT",new Font("Calibri", Font.TYPE1_FONT, 40),new Point());
+	   texteExit.setA(new Point(largeur/2, yItems-2*hauteurItem + (hauteurItem-texteExit.getHauteur())/2 + offsetTexteY));
  	    f.ajouter(texteExit);
  	    
  	    Texte textPong=new Texte(Couleur.BLANC,"PONG",new Font("Arial", Font.TYPE1_FONT, 250),new Point());
- 	   textPong.setA(new Point(((largeur-textPong.getLargeur())/2),(((hauteur-textPong.getHauteur())/2)+100 )));
+ 	   textPong.setA(new Point(largeur/2,(((hauteur-textPong.getHauteur())/2)+100 )));
 	    f.ajouter(textPong);
     	
  	  /*  if(clavier.getJoyJ1HautEnfoncee()) {
@@ -152,13 +155,13 @@ public class Pong {
    	
    	Texte texteJouer=new Texte(Couleur.NOIR,"PLAY",new Font("Calibri", Font.TYPE1_FONT, 40),new Point());
 	f.ajouter(texteJouer);
-   	texteJouer.setA(new Point(((largeur-texteJouer.getLargeur())/2),yItems+(hauteurItem-texteJouer.getHauteur())/2));
+   	texteJouer.setA(new Point(((largeur-texteJouer.getLargeur())/2),yItems+(hauteurItem-texteJouer.getHauteur())/2 + offsetTexteY));
 	f.supprimer(texteJouer);
    	f.ajouter(texteJouer);
 	    
 	Texte texteExit=new Texte(Couleur.NOIR,"EXIT",new Font("Calibri", Font.TYPE1_FONT, 40),new Point());
 	f.ajouter(texteExit);
-	texteExit.setA(new Point(((largeur-texteExit.getLargeur())/2),(yItems+hauteurItem-texteExit.getHauteur())/2));
+	texteExit.setA(new Point(((largeur-texteExit.getLargeur())/2),(yItems+hauteurItem-texteExit.getHauteur())/2 + offsetTexteY));
 	f.supprimer(texteExit);
 	f.ajouter(texteExit);
 	    

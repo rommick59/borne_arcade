@@ -3,11 +3,13 @@ from core.pageState import PageState
 from ui.utils.piano import Piano
 
 class GameView:
-    def __init__(self, windowManager):
+    def __init__(self, windowManager, offset_x=0, area_width=None):
         self.__windowManager = windowManager
-        self.__padding_x = 100
+        self.__offset_x = offset_x
+        self.__padding_x = 50
         self.__padding_y = 80
-        self.__screen_width = self.__windowManager.getScreenWidth()
+        # Largeur disponible pour cette vue (pour le multi on split l'ecran)
+        self.__screen_width = area_width if area_width else self.__windowManager.getScreenWidth()
         self.__screen_height = self.__windowManager.getScreenHeight()
         self.__play_width = self.__screen_width - 2 * self.__padding_x
         self.__play_height = self.__screen_height - self.__padding_y
@@ -81,28 +83,38 @@ class GameView:
         col_width = self.__play_width / 4
 
         for i in range(4):
-            x = self.__padding_x + i * col_width
+            x = self.__offset_x + self.__padding_x + i * col_width
             pygame.draw.rect(screen, self.__windowManager.getColor().getRose(), (x, self.__padding_y, col_width, self.__screen_height - self.__padding_y))
             pygame.draw.line(screen, self.__windowManager.getColor().getBlanc(), (x, self.__padding_y), (x, self.__screen_height), 1)
 
-        pygame.draw.line(screen, (150, 100, 200, 100), (self.__padding_x, self.__line_y), (self.__screen_width - self.__padding_x, self.__line_y), 4)
+        pygame.draw.line(
+            screen,
+            (150, 100, 200, 100),
+            (self.__offset_x + self.__padding_x, self.__line_y),
+            (self.__offset_x + self.__screen_width - self.__padding_x, self.__line_y),
+            4,
+        )
 
         for note in self.__piano.getNotes():
-            note.getRect().x = self.__padding_x + note.getColumn() * col_width
+            note.getRect().x = self.__offset_x + self.__padding_x + note.getColumn() * col_width
             note.getRect().width = col_width - 10
             if note.getRect().y < self.__screen_height:
                 note.draw()
 
         # Ligne de validation principale (déjà existante)
-        pygame.draw.line(screen, (150, 100, 200, 100), (self.__padding_x, self.__line_y), (self.__screen_width - self.__padding_x, self.__line_y), 4)
+        pygame.draw.line(
+            screen,
+            (150, 100, 200, 100),
+            (self.__offset_x + self.__padding_x, self.__line_y),
+            (self.__offset_x + self.__screen_width - self.__padding_x, self.__line_y),
+            4,
+        )
 
         # Affichage du score actuel en haut au centre
         score_text = self.__windowManager.getFontTall().render(
             f"Score : {self.__score}", True, self.__windowManager.getColor().getBlanc()
         )
-        screen.blit(score_text, score_text.get_rect(center=(self.__screen_width // 2, 40)))
-
-        pygame.display.flip()
+        screen.blit(score_text, score_text.get_rect(center=(self.__offset_x + self.__screen_width // 2, 40)))
 
     def update(self):
         if self.__game_over:

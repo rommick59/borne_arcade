@@ -48,7 +48,10 @@ class Main{
 			diff=tpsAttente;
 	  
 	}
-	status = javaSpace.getStatus();
+	// Partie terminée : recréer une instance pour revenir au menu du jeu
+	status = 0;
+	javaSpace = new Jeu();
+	diff = 0;
 	//System.out.println(str);
 	}
     }

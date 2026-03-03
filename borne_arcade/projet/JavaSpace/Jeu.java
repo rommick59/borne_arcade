@@ -829,6 +829,10 @@ public Jeu(){
 		}catch(Exception e){e.getMessage();}
 		
 		HighScore.demanderEnregistrerNom(fen,cla,null,score,"highscore");
+		try{
+		    Thread.sleep(10000);
+		}catch(Exception e){}
+		this.status = 0; // prêt à retourner au menu du jeu
 	    
 	    }
 	}

@@ -137,6 +137,8 @@ class Jeu{ // Définition de la classe
 	//Ecran de chargement
 	miguel = new Texture("decor/miguel.jpg",new Point(0,0),TAILLEX,TAILLEY);
 	fen.ajouter(miguel);
+	// forcer un rafraîchissement immédiat afin que l'écran de chargement soit visible
+	fen.rafraichir();
 
 	try{
 	    Thread.sleep(4000);
@@ -150,8 +152,21 @@ class Jeu{ // Définition de la classe
 	accueil = new Texture("decor/accueil.png",new Point(0,0),TAILLEX,TAILLEY);
 	fen.ajouter(accueil);
 
-	while(clavier.getBoutonJ1ATape() == false){
+	while(!(clavier.getBoutonJ1ATape() == true && semaphoreC==0 && semaphoreS==0)){
 	    fen.rafraichir();
+
+		// Permettre de quitter la borne depuis le menu principal via le bouton Z
+		if(clavier.getBoutonJ1ZTape() == true){
+			// si on est dans l'écran commandes ou scenario, revenir en arrière
+			if(semaphoreC>0 || semaphoreS>0){
+				semaphoreS = 0;
+				semaphoreC = 0;
+				fen.supprimer(commandes);
+				fen.supprimer(scenario);
+			} else {
+				System.exit(5);
+			}
+		}
 
 	    if(clavier.getBoutonJ1BTape() == true){ // commandes
 		semaphoreC++;
@@ -290,7 +305,8 @@ class Jeu{ // Définition de la classe
 	        player1.getTextureJoueur().translater(0,dy);
 	    }     
 	if(clavier.getBoutonJ1ZTape()){
-	    System.exit(5);
+	    // Ne pas quitter directement en plein jeu via le bouton Z de la borne
+	    // Le bouton de quittage sera pris en compte uniquement dans le menu principal.
 	}  
 	//fen.rafraichir();
 	
@@ -425,9 +441,42 @@ class Jeu{ // Définition de la classe
 		// petite pause de 3 secondes	
 		try{
 		    Thread.sleep(3000);
-		    tabEnnemis.clear();
 		}
 		catch(Exception e){}
+
+		// retirer les textures ennemies (explosions) de la fenetre avant de vider la liste
+		for(int ind2=0; ind2<tabEnnemis.size(); ind2++){
+		    try{ fen.supprimer(tabEnnemis.get(ind2).getTextureEnnemi()); }catch(Exception e){}
+		}
+		tabEnnemis.clear();
+
+		// Affichage de l'écran de fin de partie (GAME OVER)
+		if(score<50){
+		    gameover = new Texture(Couleur.NOIR,"img/snifsnof.jpeg",new Point(0,0),TAILLEX,TAILLEY);
+		    aff_score.setA(new Point((TAILLEX/2),(TAILLEY-150)));
+		    aff_score.setTexte("Score (trés nul) total :  "+String.valueOf(score));
+		    try{ ac = new Bruitage("sons/scorenul.mp3"); }catch(Exception e){}
+		} else {
+		    gameover = new Texture(Couleur.NOIR,"img/scorebien.jpg",new Point(0,0),TAILLEX,TAILLEY);
+		    aff_score.setA(new Point((TAILLEX/2),(TAILLEY-150)));
+		    aff_score.setTexte("Score (impressionnant) total :  "+String.valueOf(score));
+		    try{ ac = new Bruitage("sons/momgetthecamera.mp3"); }catch(Exception e){}
+		}
+		ac.lecture();
+		aff_gameover = new Texte(Couleur.ROUGE,("GAME OVER"),(new Font("Calibri", Font.BOLD, 50)),new Point((TAILLEX/2),(TAILLEY-100)));
+
+		fen.ajouter(gameover);
+		fen.ajouter(aff_score);
+		fen.ajouter(aff_gameover);
+		fen.rafraichir();
+
+		// afficher quelques secondes puis continuer vers l'enregistrement
+		try{
+		    Thread.sleep(3000);
+		}catch(Exception e){}
+
+		// retirer l'écran de fin avant la suite
+		try{ fen.supprimer(gameover); fen.supprimer(aff_gameover); }catch(Exception e){}
 
 		/*
 		// si le joueur est nul
@@ -466,7 +515,65 @@ class Jeu{ // Définition de la classe
 		catch(Exception e){}
 		*/
 
-		HighScore.demanderEnregistrerNom(fen,clavier,null,score,"highscore");
+		HighScore.demanderEnregistrerNom(fen,clavier,null,score,"projet/InitialDrift/highscore");
+
+		// Nettoyer les entités de la partie précédente
+		for(int i=0;i<tabEnnemis.size();i++){
+		    try{ fen.supprimer(tabEnnemis.get(i).getTextureEnnemi()); }catch(Exception e){}
+		}
+		tabEnnemis.clear();
+		for(int i=0;i<tabDecor.size();i++){
+		    try{ fen.supprimer(tabDecor.get(i)); }catch(Exception e){}
+		}
+		tabDecor.clear();
+
+		// Après tentative d'enregistrement du highscore, revenir au menu et permettre de rejouer
+		try{ ac.arret(); }catch(Exception e){}
+		ac = new Bruitage("sons/RunninInThe90.mp3");
+		ac.lecture();
+
+		// Remise à zéro du joueur et du score
+		try{ fen.supprimer(player1.getTextureJoueur()); }catch(Exception e){}
+		player1 = new Joueur(new Point((TAILLEX/2),0));
+		player1.add(fen);
+		score = 0;
+		aff_score.setTexte(("Score :"+String.valueOf(score)));
+
+		// Afficher l'écran d'accueil et attendre que le joueur appuie sur A pour rejouer
+		accueil = new Texture("decor/accueil.png",new Point(0,0),TAILLEX,TAILLEY);
+		fen.ajouter(accueil);
+		semaphoreC = 0; semaphoreS = 0;
+		while(!(clavier.getBoutonJ1ATape() == true && semaphoreC==0 && semaphoreS==0)){
+		    fen.rafraichir();
+
+		    if(clavier.getBoutonJ1BTape() == true){ // commandes
+			semaphoreC++;
+			if(semaphoreC<2){
+			    commandes = new Texture("decor/commandes.png",new Point(0,0),TAILLEX,TAILLEY);
+			    fen.ajouter(commandes);
+			}
+		    }
+		    if(clavier.getBoutonJ1CTape() == true){
+			semaphoreS++;
+			if(semaphoreS<2){
+			    scenario = new Texture("decor/scenario.jpg",new Point(0,0),TAILLEX,TAILLEY);
+			    fen.ajouter(scenario);
+			}
+		    }
+		    if(clavier.getBoutonJ1ZTape() == true){
+			if(semaphoreC>0 || semaphoreS>0){
+			    semaphoreS = 0; semaphoreC = 0;
+			    fen.supprimer(commandes);
+			    fen.supprimer(scenario);
+			} else {
+			    System.exit(5);
+			}
+		    }
+		}
+		fen.supprimer(accueil);
+		ac.arret();
+		ac = new Bruitage("sons/RunninInThe90.mp3");
+		ac.lecture();
 	    }	    
 	}
     }

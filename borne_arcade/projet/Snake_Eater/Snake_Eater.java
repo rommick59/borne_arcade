@@ -137,7 +137,7 @@ public class Snake_Eater {
 	try {
 	    Thread.sleep(3000);
 	}catch(Exception e){e.getMessage();};
-	HighScore.demanderEnregistrerNom(f,clavier,null,s.getNb(),"highscore");
+	HighScore.demanderEnregistrerNom(f,clavier,null,s.getNb(),"projet/Snake_Eater/highscore");
     }
     
     

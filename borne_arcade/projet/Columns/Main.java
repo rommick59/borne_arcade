@@ -72,7 +72,7 @@ public class Main {
                     statut = m.prochaineFrame(direction1,boutonEnfonce1);
                     if(statut==Menu.BOUTON1JOUEUR ||statut==Menu.BOUTON2JOUEURS) {
                         f.effacer();
-                        p = new Partie(f,statut);
+                        p = new Partie(f,statut,clavier);
                     }
                     break;
                 case Menu.BOUTON1JOUEUR:

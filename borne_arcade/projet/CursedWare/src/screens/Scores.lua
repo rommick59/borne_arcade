@@ -100,13 +100,16 @@ function Menu.open()
             Renderer.changeScreen(Screen.get("Title"))
         end)
     end
-    
+
     local file = io.open("highscore", "r")
-    local Data = file:read("*all")
-    local DataTbl = split(Data, "\n")
-    file:close()
-    
-    for i,v in pairs(DataTbl) do
+    local Data = ""
+    if file then
+        Data = file:read("*all") or ""
+        file:close()
+    end
+
+    local DataTbl = Data ~= "" and split(Data, "\n") or {}
+    for i,v in ipairs(DataTbl) do
         Objs[i][1]:SetText(string.sub(v, 1, 3))
         Objs[i][2]:SetText(string.sub(v, 5) .. " pts")
     end

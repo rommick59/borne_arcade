@@ -19,6 +19,7 @@ local Yellow = Color(1, 1, 0)
 local Spacing = 80
 
 Menu.ScoreToSave = 0
+local MAX_ENTRIES = 20
 
 -- Objects
 local DescriptionText = TextLabel(love.graphics.newFont("assets/Fonts/Comic.ttf", 40))
@@ -54,6 +55,20 @@ Menu.add(arrows.up, 50)
 Menu.add(arrows.down, 50)
 
 -- Functions
+local function ensureHighscoreFile()
+    local file = io.open("highscore", "r")
+    if file then
+        file:close()
+        return
+    end
+
+    file = io.open("highscore", "w")
+    if file then
+        file:write("")
+        file:close()
+    end
+end
+
 function split(inputstr, sep)
     if sep == nil then
             sep = "%s"
@@ -66,36 +81,39 @@ function split(inputstr, sep)
 end
 
 function getHighscore()
+    ensureHighscoreFile()
     local r = {}
     local file = io.open("highscore", "r")
-    local Data = file:read("*all") --love.filesystem.read("highscore")
-    local DataTbl = split(Data, "\n")
-    file:close()
+    if not file then return r end
 
-    for i,v in pairs(DataTbl) do
-        r[i] = {}
-        r[i][1] = string.sub(v, 1, 3)
-        r[i][2] = string.sub(v, 5)
+    local Data = file:read("*all") or ""
+    file:close()
+    if Data == "" then return r end
+
+    local DataTbl = split(Data, "\n")
+    for _,v in ipairs(DataTbl) do
+        local name = string.sub(v, 1, 3)
+        local score = tonumber(string.sub(v, 5)) or 0
+        table.insert(r, {name, score})
     end
     return r
 end
 
 function postHighscore(t)
-    table.sort(t, function(a,b) return tonumber(a[2]) > tonumber(b[2]) end)
+    table.sort(t, function(a,b) return (tonumber(a[2]) or 0) > (tonumber(b[2]) or 0) end)
 
     local str = ""
-    local i = 0
-    for _,v in pairs(t) do
+    for i,v in ipairs(t) do
+        if i > MAX_ENTRIES then break end
         str = str .. ("\n%s-%s"):format(v[1], v[2])
-
-        i = i + 1
-        if i == 9 then break end
     end
 
     local txt = string.sub(str, 2)
     local file = io.open("highscore", "w+")
-    file:write(txt)
-    file:close()
+    if file then
+        file:write(txt)
+        file:close()
+    end
 end
 
 function updateArrows()

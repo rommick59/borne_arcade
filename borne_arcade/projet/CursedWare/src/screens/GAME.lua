@@ -124,6 +124,7 @@ Heart2.Text = Heart2Text
 
 local Game_Started = false
 local NextStep, Minigames, InTransition, LastGame
+local finishRound
 
 -- // Functions
 function isMultiplayer()
@@ -339,6 +340,7 @@ function PreSetupMinigame(self, PlayerID)
         self.add(obj, 10000, true)
 
         self:_PreStop()
+        finishRound("success")
     end
 
     self.Fail = function()
@@ -365,6 +367,7 @@ function PreSetupMinigame(self, PlayerID)
         end
 
         self:_PreStop()
+        finishRound("fail")
     end
 
     self.add = function(Obj, ZIndex, Force)
@@ -405,6 +408,100 @@ function PreSetupMinigame(self, PlayerID)
             Controls.unbind(i)
         end
     end
+end
+
+function finishRound(reason)
+    if not Menu.GAME or Menu.GAME.FinishingRound then return end
+    Menu.GAME.FinishingRound = true
+
+    if Menu.GAME.CurrentMinigame then
+        Menu.GAME.CurrentMinigame._Started = false
+        if not Menu.GAME.CurrentMinigame._Stopped then
+            Menu.GAME.CurrentMinigame:_PreStop()
+        end
+    end
+    if Menu.GAME.OtherMinigame then
+        Menu.GAME.OtherMinigame._Started = false
+        if not Menu.GAME.OtherMinigame._Stopped then
+            Menu.GAME.OtherMinigame:_PreStop()
+        end
+    end
+
+    Menu.rem(BombImg)
+    Menu.rem(BombText)
+    Menu.add(BombExplosion)
+
+    DelayService.new(2/Menu.GAME.CurrentSpeed, function()
+        if Menu.GAME.CurrentMinigame then
+            Menu.GAME.CurrentMinigame:_PreCleanup()
+            Menu.GAME.CurrentMinigame:Cleanup()
+            Menu.GAME.CurrentMinigame:StopMusic()
+        end
+        if Menu.GAME.OtherMinigame then
+            Menu.GAME.OtherMinigame:_PreCleanup()
+            Menu.GAME.OtherMinigame:Cleanup()
+            Menu.GAME.OtherMinigame:StopMusic()
+        end
+
+        Menu.rem(BombExplosion)
+        Menu.add(GameScreen)
+        Menu.GAME.Rounds = Menu.GAME.Rounds + 1
+        Menu.GAME.CurrentDifficulty = Menu.GAME.CurrentDifficulty + Menu.DifficultyIncrease
+        local PassStage = Menu.GAME.Stage ~= math.ceil(Menu.GAME.Rounds/Menu.GamesBeforeSpeedup)
+        if Menu.GAME["LifePlayer1"] <= 0 or (Menu.NumberOfPlayers == 2 and Menu.GAME["LifePlayer2"] <= 0) then
+            Menu.GAME.FinishingRound = false
+            return EndGame()
+        elseif PassStage then
+            Menu.GAME.Stage = math.ceil(Menu.GAME.Rounds/Menu.GamesBeforeSpeedup)
+
+            local sfx = love.audio.newSource("/assets/sounds/RewindSFX.mp3", "static")
+            sfx:setLooping(false)
+            sfx:setVolume(1)
+            sfx:play()
+
+            Menu.GAME.StageMusic.Source:stop()
+            InTransition = true
+        end
+
+        Menu.GAME.StageMusic.Source:setPitch(1 + (Menu.GAME.CurrentSpeed-1)*Menu.MusicSpeedMult)
+        DelayService.new(.5/Menu.GAME.CurrentSpeed, function()
+            if PassStage then
+                MainText:SetText("...")
+
+                popScreenOUT()
+                DelayService.new(2, function()
+                    Menu.GAME.CurrentSpeed = Menu.GAME.CurrentSpeed + Menu.SpeedFactor
+                    local sfx = love.audio.newSource("/assets/sounds/speedup.ogg", "static")
+                    sfx:setLooping(false)
+                    sfx:setVolume(1)
+                    sfx:play()
+                    MainText:SetText("VITESSE AUGMENTEE !\n              " .. Menu.GAME.CurrentSpeed .. "X !")
+
+                    DelayService.new(2, function()
+                        Menu.GAME.StageMusic = getCurrentMusic(Menu.GAME.Stage)
+                        Menu.GAME.StageMusic.Beat = -1
+                        Menu.GAME.StageMusic.Source = love.audio.newSource("/assets/musics/" .. Menu.GAME.StageMusic.Link, "static")
+                        Menu.GAME.StageMusic.Source:setLooping(false)
+                        Menu.GAME.StageMusic.Source:setVolume(0)
+                        Menu.GAME.StageMusic.Source:setPitch(1 + (Menu.GAME.CurrentSpeed-1)*Menu.MusicSpeedMult)
+                        Menu.GAME.StageMusic.Source:play()
+                        FadeMusic(2, 1)
+
+                        DelayService.new(2, function()
+                            NextStep = nil
+                            InTransition = false
+                            Menu.GAME.FinishingRound = false
+                        end)
+                    end)
+                end)
+            else
+                FadeMusic(1/Menu.GAME.CurrentSpeed, 1)
+                popScreenOUT()
+                NextStep = nil
+                Menu.GAME.FinishingRound = false
+            end
+        end)
+    end)
 end
 
 function step()
@@ -518,6 +615,7 @@ function Menu.open()
 
         CurrentSpeed = Menu.StartSpeed,
         CurrentDifficulty = Menu.StartDifficulty,
+        FinishingRound = false,
     }
 
     for i=1, Menu.NumberOfPlayers do
@@ -566,7 +664,7 @@ function Menu.update(dt)
     end
 
     if Menu.GAME.CurrentMinigame then
-        if Menu.GAME.CurrentMinigame._Started then
+        if Menu.GAME.CurrentMinigame._Started and not Menu.GAME.FinishingRound then
             -- UPDATE CYCLE
             Menu.GAME.CurrentMinigame:_PreUpdate(dt)
             if Menu.GAME.OtherMinigame then
@@ -575,86 +673,17 @@ function Menu.update(dt)
             
             -- TIME
             local tick = love.timer.getTime()
-            local Elapsed = tick - Menu.GAME.CurrentMinigame._Started
+            local startedAt = Menu.GAME.CurrentMinigame._Started
+            if type(startedAt) ~= "number" then
+                startedAt = tick
+                Menu.GAME.CurrentMinigame._Started = startedAt
+            end
+            local Elapsed = tick - startedAt
             
             BombText:SetText(math.max(math.floor((Menu.GAME.CurrentMinigame.MaxTime-Elapsed)*10)/10, 0))
 
             if Elapsed >= Menu.GAME.CurrentMinigame.MaxTime then
-                Menu.GAME.CurrentMinigame._Started = false
-                Menu.GAME.CurrentMinigame:_PreStop()
-                if Menu.GAME.OtherMinigame then Menu.GAME.OtherMinigame:_PreStop() end
-
-                Menu.rem(BombImg)
-                Menu.rem(BombText)
-                Menu.add(BombExplosion)
-
-                self._Stopped = true
-                DelayService.new(2/Menu.GAME.CurrentSpeed, function()
-                    Menu.GAME.CurrentMinigame:_PreCleanup()
-                    Menu.GAME.CurrentMinigame:Cleanup()
-                    Menu.GAME.CurrentMinigame:StopMusic()
-                    if Menu.GAME.OtherMinigame then 
-                        Menu.GAME.OtherMinigame:_PreCleanup() 
-                        Menu.GAME.OtherMinigame:Cleanup() 
-                        Menu.GAME.OtherMinigame:StopMusic()
-                    end
-
-                    Menu.rem(BombExplosion)
-                    Menu.add(GameScreen)
-                    Menu.GAME.Rounds = Menu.GAME.Rounds + 1
-                    Menu.GAME.CurrentDifficulty = Menu.GAME.CurrentDifficulty + Menu.DifficultyIncrease
-                    local PassStage = Menu.GAME.Stage ~= math.ceil(Menu.GAME.Rounds/Menu.GamesBeforeSpeedup)
-                    if Menu.GAME["LifePlayer1"] <= 0 or (Menu.NumberOfPlayers == 2 and Menu.GAME["LifePlayer2"] <= 0) then
-                        return EndGame()
-                    elseif PassStage then
-                        Menu.GAME.Stage = math.ceil(Menu.GAME.Rounds/Menu.GamesBeforeSpeedup)
-
-                        local sfx = love.audio.newSource("/assets/sounds/RewindSFX.mp3", "static")
-                        sfx:setLooping(false)
-                        sfx:setVolume(1)
-                        sfx:play()
-
-                        Menu.GAME.StageMusic.Source:stop()
-                        InTransition = true
-                    end
-
-                    Menu.GAME.StageMusic.Source:setPitch(1 + (Menu.GAME.CurrentSpeed-1)*Menu.MusicSpeedMult)
-                    DelayService.new(.5/Menu.GAME.CurrentSpeed, function()
-                        if PassStage then
-                            MainText:SetText("...")
-
-                            popScreenOUT()
-                            DelayService.new(2, function()
-                                Menu.GAME.CurrentSpeed = Menu.GAME.CurrentSpeed + Menu.SpeedFactor
-                                local sfx = love.audio.newSource("/assets/sounds/speedup.ogg", "static")
-                                sfx:setLooping(false)
-                                sfx:setVolume(1)
-                                sfx:play()
-                                MainText:SetText("VITESSE AUGMENTEE !\n              " .. Menu.GAME.CurrentSpeed .. "X !")
-
-                                DelayService.new(2, function()
-                                    Menu.GAME.StageMusic = getCurrentMusic(Menu.GAME.Stage)
-                                    Menu.GAME.StageMusic.Beat = -1
-                                    Menu.GAME.StageMusic.Source = love.audio.newSource("/assets/musics/" .. Menu.GAME.StageMusic.Link, "static")
-                                    Menu.GAME.StageMusic.Source:setLooping(false)
-                                    Menu.GAME.StageMusic.Source:setVolume(0)
-                                    Menu.GAME.StageMusic.Source:setPitch(1 + (Menu.GAME.CurrentSpeed-1)*Menu.MusicSpeedMult)
-                                    Menu.GAME.StageMusic.Source:play()
-                                    FadeMusic(2, 1)
-
-                                    DelayService.new(2, function()
-                                        NextStep = nil
-                                        InTransition = false
-                                    end)
-                                end)
-                            end)
-                        else
-                            FadeMusic(1/Menu.GAME.CurrentSpeed, 1)
-                            popScreenOUT()
-                            NextStep = nil
-                        end
-                    end)
-                end)
+                finishRound("timeout")
             end
         end
     end    

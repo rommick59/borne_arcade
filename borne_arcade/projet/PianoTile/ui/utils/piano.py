@@ -1,4 +1,4 @@
-import pygame, librosa, random
+import pygame, random
 from ui.utils.note import Note
 
 class Piano:
@@ -10,6 +10,9 @@ class Piano:
 
     def getNotes(self):
         return self.__notes
+
+    def setNotes(self, notes):
+        self.__notes = notes
 
     def increaseDifficulty(self):
         self.__difficulty += 1
@@ -23,24 +26,30 @@ class Piano:
         pygame.mixer.music.pause()
 
     def generate_notes(self):
-        print("Génération des notes à partir du fichier :", self.__filepath)
+        print("Generation des notes (sans librosa) depuis :", self.__filepath)
+
+        # On estime la duree de la piste pour espacer les notes
+        try:
+            pygame.mixer.init()
+            track = pygame.mixer.Sound(self.__filepath)
+            song_length = track.get_length()
+        except Exception as exc:  # pragma: no cover - depend des codecs dispo
+            print("Impossible de lire la duree du morceau, fallback 60s:", exc)
+            song_length = 60.0
+
+        tempo_bpm = 120  # rythme par defaut
+        beat_interval = 60.0 / tempo_bpm
+
         notes = []
-
-        # Charger le fichier en mono, à faible sample rate (optimisation mémoire)
-        y, sr = librosa.load(self.__filepath, sr=22050, mono=True)
-
-        # Analyse du rythme
-        tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
-        beat_times = librosa.frames_to_time(beat_frames, sr=sr)
-
-        for time in beat_times:
-            nb_notes = min(self.__difficulty, random.randint(1, 4))
+        current_time = 0.0
+        while current_time <= song_length:
+            nb_notes = min(self.__difficulty, random.randint(1, 3))
             for _ in range(nb_notes):
                 position = random.choice(["left", "middle", "right", "top"])
-                note = Note(gameview=self.__gameView, position=position, timestamp=time)
-                notes.append(note)
+                notes.append(Note(gameview=self.__gameView, position=position, timestamp=current_time))
+            current_time += beat_interval
 
-        print(f"{len(notes)} notes générées.")
+        print(f"{len(notes)} notes generees sur {song_length:.1f}s (tempo {tempo_bpm} BPM).")
         return notes
 
     def getCurrentTime(self):

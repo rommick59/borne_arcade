@@ -1,35 +1,20 @@
-A FAIRE : 
+wget https://github.com/love2d/love/releases/download/11.5/love-11.5-linux-armv7l.tar.xz
+installé : pygame et love2d(et le compiler) 
 
-- REGARDER LES JEUX COMPILER EN PYHTON POUR LES TESTER
-    ball-blast 
-    CursedWare
-    OsuTile
-    PianoTile
-    TronGame
-
-- Dans Puissance_X -> warning Java Deprecated
-Entree.java:20: warning: [removal] Integer(int) in Integer has been deprecated and marked for removal
-        Integer toucheInteger = new Integer(touche);
-                                ^
-Entree.java:28: warning: [removal] Long(long) in Long has been deprecated and marked for removal
-                                derniereRecupTouche.put(toucheInteger, new Long(maintenant));
-                                                                       ^
-Entree.java:60: warning: [removal] Integer(int) in Integer has been deprecated and marked for removal
-        Integer touche = new Integer(e.getKeyCode());
-                         ^
-Entree.java:64: warning: [removal] Long(long) in Long has been deprecated and marked for removal
-                    derniereRecupTouche.put(touche, new Long(0));
-                                                    ^
-Entree.java:69: warning: [removal] Integer(int) in Integer has been deprecated and marked for removal
-        Integer touche = new Integer(e.getKeyCode());
-                         ^
-Case.java:30: warning: [removal] Integer(int) in Integer has been deprecated and marked for removal
-                return (contenu == 0 ? " " : new Integer(contenu).toString());
-                                             ^
-ChoixValeurItem.java:135: warning: [removal] Integer(int) in Integer has been deprecated and marked for removal
-                        Point tailleNombre = this.mesurer(new Integer(this.valeur).toString(), graphics);
-                                                          ^
-VraiIA.java:44: warning: [removal] Integer(int) in Integer has been deprecated and marked for removal
-                                this.joueurs.add(new Integer(i));
-                                                 ^
-8 warnings
+pour librosa j'ai utilisé ceci :
+sudo apt update
+sudo apt install -y gfortran libopenblas-dev liblapack-dev
+pip3 install --user "numpy<2" "scipy<1.12" librosa
+jeu fini :
+- CursedWare
+- Initial Drift
+- Puissance X
+- Columns
+- DinoRail
+- TronGame
+- PongGame
+- PianoTile
+- Minesweeper
+- SnakeEater
+- OsuTile 
+- BallBlast

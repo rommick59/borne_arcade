@@ -15,7 +15,7 @@ class Button:
             pygame.K_z: False,
             pygame.K_e: False,
             pygame.K_q: False,
-            pygame.K_z: False,
+            pygame.K_s: False,
             pygame.K_d: False,  # Entrer
         }
 
@@ -33,8 +33,11 @@ class Button:
         elif event.key in (pygame.K_RIGHT, pygame.K_m):
             return (1, 0)
 
-        if event.key == pygame.K_h:
+        # Validation (un seul bouton logique, mappé sur deux touches)
+        if event.key in (pygame.K_h, pygame.K_d):
             return "enter"
+
+        # Joueur 1
         if event.key == pygame.K_r:
             return 0
         if event.key == pygame.K_t:
@@ -44,6 +47,18 @@ class Button:
         if event.key == pygame.K_f:
             return 3
         if event.key == pygame.K_g:
+            return 4
+
+        # Joueur 2
+        if event.key == pygame.K_a:
+            return 0
+        if event.key == pygame.K_z:
+            return 1
+        if event.key == pygame.K_e:
+            return 2
+        if event.key == pygame.K_q:
+            return 3
+        if event.key == pygame.K_s:
             return 4
 
         return None

@@ -37,6 +37,10 @@ class SelectionView:
                 (0, 0),
                 self.create_ACCUEIL_selections()
             ),
+            PageState.MULTIJOUEUR: (
+                (0, 0),
+                self.create_MULTIJOUER_selections()
+            ),
             PageState.STATISTIQUE: (
                 (1, 0),
                 self.create_STATISTIQUE_selections()
@@ -55,7 +59,7 @@ class SelectionView:
     
     def getSelectionFull(self):
         page = self.__windowManager.getInterface().getPage()
-        return self.__selections[page]
+        return self.__selections.get(page)
     
     def getPosition(self):
         page = self.__windowManager.getInterface().getPage()
@@ -318,6 +322,19 @@ class SelectionView:
             selections[(1, 0)] = "Play", "rectangle", self.__windowManager.getScreenWidth() - 500, 20, 400, 50, self.__windowManager.getColor().getBlanc()
             
         return selections
+
+    def create_MULTIJOUER_selections(self):
+        # Même grille que l'accueil, mais le bouton bas "Multijoueur" devient "Solo" pour revenir au mode solo
+        selections = self.create_ACCUEIL_selections()
+        if not selections:
+            return selections
+        # Trouver la ligne basse (y max) et remplacer le label de la colonne 1
+        max_y = max(pos[1] for pos in selections.keys())
+        target_pos = (1, max_y)
+        if target_pos in selections:
+            label, *rest = selections[target_pos]
+            selections[target_pos] = ("Solo", *rest)
+        return selections
     
     def create_ACCUEIL_selections(self):
         """Cree les selections du tableau de demarrage en associant les positions valides aux selections."""
@@ -523,6 +540,6 @@ class SelectionView:
             if (nouvelle_ligne, y) in self.getSelection()[1].keys():
                 self.setPosition((nouvelle_ligne, y))
         
-        if self.__windowManager.getInterface().getPage() == PageState.ACCUEIL:
+        if self.__windowManager.getInterface().getPage() in (PageState.ACCUEIL, PageState.MULTIJOUEUR):
             self.update_selection(direction)
 

@@ -79,6 +79,42 @@ compile_python() {
 }
 
 # ==============================
+# PYGAME
+# ==============================
+
+check_pygame() {
+    print_section "VÉRIFICATION PYGAME"
+
+    if python3 -c "import pygame" >/dev/null 2>&1; then
+        PYGAME_VERSION=$(python3 -c "import pygame; print(pygame.__version__)")
+        echo "Pygame déjà installé (version $PYGAME_VERSION)"
+    else
+        INSTALL_PYGAME=true
+        echo "Pygame non détecté"
+    fi
+}
+
+install_pygame() {
+    if [ "${INSTALL_PYGAME:-false}" != true ]; then
+        return
+    fi
+
+    print_section "INSTALLATION PYGAME"
+
+    echo "Installation de Pygame..."
+
+    python3 -m pip install --upgrade pip
+    python3 -m pip install pygame
+
+    if python3 -c "import pygame" >/dev/null 2>&1; then
+        echo "Pygame installé avec succès"
+    else
+        echo "Erreur lors de l'installation de Pygame"
+        exit 1
+    fi
+}
+
+# ==============================
 # LUA
 # ==============================
 
@@ -133,6 +169,8 @@ main() {
     install_java
     check_python
     compile_python
+    check_pygame
+    install_pygame
     install_lua
     install_mg2d
 

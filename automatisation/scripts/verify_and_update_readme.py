@@ -240,5 +240,5 @@ class ReadmeManager:
 # ==============================================================
 
 if __name__ == "__main__":
-    manager = ReadmeManager(force_update=True)
+    manager = ReadmeManager(force_update=False)
     manager.run()

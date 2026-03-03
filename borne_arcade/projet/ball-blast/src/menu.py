@@ -7,7 +7,7 @@ import pygame
 from constantes import WHITE, BLACK, RED, GREEN, BLUE, SCREEN_WIDTH, SCREEN_HEIGHT, FONT
 
 
-class Menu():
+class Menu:
     """
     Classe gérant l'interface de menu du jeu
     
@@ -23,6 +23,9 @@ class Menu():
         
         Args:
             screen (pygame.Surface): Surface de dessin de l'écran
+            
+        Raises:
+            None
         """
         self.screen: pygame.Surface = screen
         self.selectedOption: int = 0
@@ -34,7 +37,7 @@ class Menu():
         Affiche l'interface de menu et gère les interactions
         
         Args:
-            keyEvent: Événements clavier
+            keyEvent: Liste des événements clavier (pygame.event.Event)
             pause (bool): Indique si le menu est affiché en pause
             
         Returns:

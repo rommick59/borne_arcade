@@ -1,5 +1,4 @@
-"""
-Constantes pour le jeu
+"""Constantes pour le jeu
 
 Ce fichier contient les constantes utilisées dans le jeu, y compris les dimensions de l'écran, les couleurs, les vitesses et les polices d'écriture.
 """

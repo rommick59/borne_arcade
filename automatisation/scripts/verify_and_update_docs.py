@@ -215,7 +215,7 @@ class DocsManager:
         for file_path in source_files:
             self.verify_and_update_file(file_path)
             
-    def strip_markdown_fences(content: str) -> str:
+    def strip_markdown_fences(self, content: str) -> str:
         """Supprimer les ``` au début et a la fin si present dans le document.
 
         Args:
@@ -284,6 +284,6 @@ class DocsManager:
 # ==============================================================
 
 if __name__ == "__main__":
-    manager = DocsManager(force_update=True)
+    manager = DocsManager(force_update=False)
     manager.run()
     # manager.update_file_doc("ball-blast", "main.py")

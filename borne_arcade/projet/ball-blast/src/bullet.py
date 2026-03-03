@@ -17,6 +17,12 @@ class Bullet(pygame.sprite.Sprite):
         Args:
             x (int): Coordonnée x du centre de la balle.
             y (int): Coordonnée y du bas de la balle.
+        
+        Returns:
+            None
+        
+        Raises:
+            None
         """
         super().__init__()
         self.image = pygame.Surface((10, 20))
@@ -30,6 +36,15 @@ class Bullet(pygame.sprite.Sprite):
         """Met à jour la position de la balle.
         
         La balle se déplace vers le haut à la vitesse speed_y. Si la balle sort du haut de l'écran, elle est supprimée.
+        
+        Args:
+            None
+        
+        Returns:
+            None
+        
+        Raises:
+            None
         """
         self.rect.y -= self.speed_y
         if self.rect.bottom < 0:

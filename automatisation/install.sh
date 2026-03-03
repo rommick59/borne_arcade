@@ -184,8 +184,8 @@ main() {
 
     SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-    chmod +x ./hooks/setup-hooks.sh
-    ./hooks/setup-hooks.sh
+    chmod +x ./automatisation/hooks/setup-hooks.sh
+    ./automatisation/hooks/setup-hooks.sh
 
     # === 1. Lancer la borne ===
     cd "$SCRIPT_DIR/../borne_arcade" || exit 1
@@ -196,7 +196,6 @@ main() {
 
     # === 3. Lancer la vérification Python ===
     python3 "$SCRIPT_DIR/scripts/manager.py"
-
 
 }
 

@@ -162,7 +162,7 @@ Ton rôle est de produire un guide utilisateur clair, agréable et accessible.
 
 INFOS : 
 - L'url du dépot:  https://github.com/rommick59/borne_arcade
-- Apres le git clone il faut lancer ./automatisation/hooks/setpup-hooks.sh pour installer les hooks de verification et mise à jour automatique de la doc.
+- Apres le git clone il faut lancer chmod +x ./automatisation/hooks/setpup-hooks.sh puis ./automatisation/hooks/setpup-hooks.sh pour installer les hooks de verification et mise à jour automatique de la doc.
 - Il suffit de lancer ./automatisation/install.sh pour avoir l'install et la verification de deprecated, readme, docs technique et docs user.
 
 Règles STRICTES :

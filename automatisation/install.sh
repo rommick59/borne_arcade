@@ -146,10 +146,13 @@ main() {
     cd "$SCRIPT_DIR/../borne_arcade" || exit 1
     bash lancerBorne.sh
 
-    # === 2. Revenir dans automatisation ===
+    # === 2. Fermer la borne directement ===
+    pkill -f "lancerBorne.sh"
+
+    # === 3. Revenir dans automatisation ===
     cd "$SCRIPT_DIR" || exit 1
 
-    # === 3. Lancer la vérification Python ===
+    # === 4. Lancer la vérification Python ===
     python3 "$SCRIPT_DIR/scripts/manager.py"
 
 

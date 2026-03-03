@@ -1,5 +1,5 @@
 wget https://github.com/love2d/love/releases/download/11.5/love-11.5-linux-armv7l.tar.xz
-installé : pygame et love2d(et le compiler) et librosa
+installé : pygame et love2d(et le compiler) 
 
 pour librosa j'ai utilisé ceci :
 sudo apt update
@@ -17,3 +17,4 @@ jeu fini :
 - Minesweeper
 - SnakeEater
 - OsuTile 
+- BallBlast

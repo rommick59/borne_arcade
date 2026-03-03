@@ -74,8 +74,7 @@ class HighScore{
 	}
 
 	//System.out.println("position : "+position);
-	if(position>=10)
-		return;
+	// Toujours afficher l'écran, même si le score n'entre pas dans le top 10
 	
 	String score=s+"";
 
@@ -99,11 +98,13 @@ class HighScore{
 	    System.err.println("HighScore font fallback: "+e.getMessage());
 	    font = new Font("Arial", Font.BOLD, 40);
 	}
+	Font fontInstructions = font;
+	try{ fontInstructions = font.deriveFont(20.0f); }catch(Exception e){}
 	Texte highscore = new Texte(Couleur.NOIR, "H  I  G  H  S  C  O  R  E", font, new Point(640,950));
 	Texte scoreAtteint = new Texte(Couleur.NOIR, score, font, new Point(420,400));
 	Texte enterYourName = new Texte(Couleur.NOIR, "Entrez vos 3 lettres", font, new Point(640,800));
 	Texte posNum = new Texte(Couleur.NOIR, (position+1)+"eme", font, new Point(120,400));
-	Texte instructions = new Texte(Couleur.NOIR, "F = valider | Haut/Bas : lettre | Gauche/Droite : position", font, new Point(640,720));
+	Texte instructions = new Texte(Couleur.NOIR, "F ou G = valider | Haut/Bas : lettre | Gauche/Droite : position", fontInstructions, new Point(640,720));
 
 	if(position==0)
 	    posNum.setTexte("1er");
@@ -181,6 +182,17 @@ class HighScore{
 	    posNumSuiv.setTexte((position+2)+"eme");
 	}
 
+	// Vider les appuis en attente (pour éviter une validation immédiate)
+	try{
+	    Thread.sleep(100);
+	}catch(Exception e){}
+	clavier.getBoutonJ1ATape();
+	clavier.getBoutonJ1BTape();
+	clavier.getJoyJ1HautTape();
+	clavier.getJoyJ1BasTape();
+	clavier.getJoyJ1GaucheTape();
+	clavier.getJoyJ1DroiteTape();
+
 	fin=false;
 
 	while(!fin){
@@ -216,7 +228,7 @@ class HighScore{
 		}
 	    }
 
-	    if(clavier.getBoutonJ1ATape())
+	    if(clavier.getBoutonJ1ATape() || clavier.getBoutonJ1BTape())
 		fin=true;
 	    
 	    f.rafraichir();

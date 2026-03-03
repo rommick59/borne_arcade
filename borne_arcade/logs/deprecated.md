@@ -1,32 +1,25 @@
-1 PROBLÈME : Le code utilise la méthode `Integer(int)` et `Long(long)`, qui sont considérées comme obsolètes.
+1 PROBLÈME :  
+Utilisation de constructeurs dépréciés pour les classes Integer et Long dans plusieurs fichiers Java, générant des warnings de compilation.
 
-2 COMPILATIONS CONCERNÉES :
-- Entree.java :
-  - Ligne 20 : Création d'un objet Integer avec une valeur entière.
-  - Ligne 28 : Création d'un objet Long avec une valeur longue.
-  - Ligne 60 : Création d'un objet Integer avec une valeur entière.
-  - Ligne 64 : Création d'un objet Long avec une valeur longue.
-  - Ligne 69 : Création d'un objet Integer avec une valeur entière.
-- Case.java :
-  - Ligne 30 : Conversion d'une valeur entière en String via un objet Integer.
-- ChoixValeurItem.java :
-  - Ligne 135 : Création d'un objet Integer avec une valeur entière.
-- VraiIA.java :
-  - Ligne 44 : Création d'un objet Integer avec une valeur entière.
+2 COMPILATIONS CONCERNÉES :  
+- JavaSpace :  
+- Entree.java : Ligne 20 : Création d'un Integer via le constructeur déprécié  
+- Entree.java : Ligne 28 : Création d'un Long via le constructeur déprécié  
+- Entree.java : Ligne 60 : Création d'un Integer via le constructeur déprécié  
+- Entree.java : Ligne 64 : Création d'un Long via le constructeur déprécié  
+- Entree.java : Ligne 69 : Création d'un Integer via le constructeur déprécié  
+- Case.java : Ligne 30 : Création d'un Integer via le constructeur déprécié  
+- ChoixValeurItem.java : Ligne 135 : Création d'un Integer via le constructeur déprécié  
+- VraiIA.java : Ligne 44 : Création d'un Integer via le constructeur déprécié  
 
-3 SOLUTION : Utiliser les types `int` et `long` directement au lieu de créer des objets `Integer` et `Long`.
+3 SOLUTION :  
+Remplacer les constructeurs dépréciés de Integer et Long par Integer.valueOf(), Long.valueOf() ou utiliser l'autoboxing (conversion automatique des primitives en objets).  
 
-4 EXEMPLE DE CORRECTION :
-**Entree.java Avant:**
-```java
-Integer toucheInteger = new Integer(touche);
-derniereRecupTouche.put(toucheInteger, new Long(maintenant));
-```
-**Entree.java Après:**
-```java
-int toucheInteger = touche;
-derniereRecupTouche.put(toucheInteger, (long) maintenant); 
-```
+4 EXEMPLE DE CORRECTION :  
+AVANT :  
+Integer toucheInteger = new Integer(touche);  
+derniereRecupTouche.put(toucheInteger, new Long(maintenant));  
 
-
-
+APRÈS :  
+Integer toucheInteger = Integer.valueOf(touche);  
+derniereRecupTouche.put(toucheInteger, Long.valueOf(maintenant));

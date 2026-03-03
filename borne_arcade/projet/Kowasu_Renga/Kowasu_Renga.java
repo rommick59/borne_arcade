@@ -290,5 +290,15 @@ public class Kowasu_Renga {
 	}
 
 	HighScore.demanderEnregistrerNom(f,clavier,null,score,"highscore");
+
+	// Laisse le temps de voir l'écran de fin avant de quitter
+	try {
+	    Thread.sleep(3000);
+	}
+	catch ( InterruptedException e ) {
+	    Thread.currentThread().interrupt();
+	}
+
+	System.exit(0);
     }	
 }

@@ -25,9 +25,10 @@ HIT_BOX_PIXEL = 30  # Tolérance
 # === Contrôles ===
 # Mappage des touches de jeu par colonne
 
-KEY_MAPPING = {0: pygame.K_t, 1: pygame.K_y, 2: pygame.K_a, 3: pygame.K_z}
+KEY_MAPPING = {0: pygame.K_r, 1: pygame.K_t, 2: pygame.K_y, 3: pygame.K_f}
 
-PAUSE_KEY = pygame.K_f
+# Pause en bas milieu (g)
+PAUSE_KEY = pygame.K_g
 
 # Contrôles de navigation dans les menus
 MENU_UP_KEY = pygame.K_UP

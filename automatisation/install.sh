@@ -192,7 +192,7 @@ main() {
     cd "$SCRIPT_DIR/.." || exit 1
 
     # === 3. Lancer la vérification Python ===
-    python3 "$SCRIPT_DIR/scripts/manager.py"
+    python3 "$SCRIPT_DIR/scripts/manager.py" --force
 
 }
 

@@ -142,6 +142,9 @@ main() {
 
     SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
+    chmod +x ./hooks/setup-hooks.sh
+    ./hooks/setup-hooks.sh
+
     # === 1. Lancer la borne ===
     cd "$SCRIPT_DIR/../borne_arcade" || exit 1
     bash lancerBorne.sh

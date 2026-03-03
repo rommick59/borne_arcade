@@ -31,6 +31,8 @@ install_java() {
         echo "Java non trouvé. Installation..."
         echo "Commande : Sudo apt update"
         sudo apt update
+        echo "Commande : Sudo dpkg --configure -a"
+        sudo dpkg --configure -a
         echo "Commande : Sudo apt install -y default-jdk"
         sudo apt install -y default-jdk
         echo "Java installé : $(java -version 2>&1 | awk -F '"' '/version/ {print $2}')"

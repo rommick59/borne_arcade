@@ -8,8 +8,13 @@ public class BoiteImage extends Boite{
 
     Texture image;
 
+    private static final String DEFAULT_COVER = "img/bouton2.png";
+
     // Try a few relative paths to find the game's cover image.
     private static String resolveCoverPath(String base){
+        if(base == null || base.isEmpty()){
+            return DEFAULT_COVER;
+        }
         String candidate = base+"/photo_small.png";
         File f = new File(candidate);
         if(f.exists()) return candidate;
@@ -24,13 +29,22 @@ public class BoiteImage extends Boite{
             f = new File(candidate);
             if(f.exists()) return candidate;
         }
-        return base+"/photo_small.png"; // fallback, even if missing
+        return DEFAULT_COVER;
+    }
+
+    private void setImageSafe(String path){
+        try{
+            this.image.setImg(resolveCoverPath(path));
+        }catch(Exception e){
+            this.image.setImg(DEFAULT_COVER);
+        }
+        this.image.setTaille(400, 320);
     }
 
     BoiteImage(Rectangle rectangle, String image) {
 	super(rectangle);
 	this.image = new Texture(resolveCoverPath(image), new Point(760, 648));
-    this.image.setTaille(400, 320);
+    setImageSafe(image);
     }
 
     public Texture getImage() {
@@ -38,8 +52,7 @@ public class BoiteImage extends Boite{
     }
 
     public void setImage(String chemin) {
-	this.image.setImg(resolveCoverPath(chemin));
-    this.image.setTaille(400, 320);
+	setImageSafe(chemin);
     }
 
 }

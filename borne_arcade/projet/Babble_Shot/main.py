@@ -7,6 +7,17 @@ import pygame
 
 
 pygame.init()
+BLEND_ALPHA_COMPAT = getattr(pygame, "BLEND_ALPHA_SDL2", 0)
+
+
+def draw_rect_compat(surface, color, rect, width=0, border_radius=0):
+    if border_radius > 0:
+        try:
+            pygame.draw.rect(surface, color, rect, width, border_radius)
+            return
+        except TypeError:
+            pass
+    pygame.draw.rect(surface, color, rect, width)
 
 DISPLAY_INFO = pygame.display.Info()
 WIDTH = DISPLAY_INFO.current_w if DISPLAY_INFO.current_w > 0 else 1000
@@ -30,10 +41,12 @@ SHOT_SPEED = 920
 
 NEW_ROW_EVERY = 6
 
-KEY_START = "("
-KEY_QUIT = '"'
-KEY_RESTART = "é"
-KEY_SHOOT = "'"
+KEY_START = {"t"}
+KEY_QUIT = {"h"}
+KEY_RESTART = {"g"}
+KEY_SHOOT = {"r"}
+KEY_AIM_LEFT = {"f"}
+KEY_AIM_RIGHT = {"y"}
 NAME_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ ."
 NAME_LENGTH = 3
 
@@ -91,7 +104,7 @@ class Particle:
             (size, size),
             int(self.radius * 2),
         )
-        surface.blit(particle_surf, (self.position.x - size, self.position.y - size), special_flags=pygame.BLEND_ALPHA_SDL2)
+        surface.blit(particle_surf, (self.position.x - size, self.position.y - size), special_flags=BLEND_ALPHA_COMPAT)
 
 
 class BubbleShooterGame:
@@ -231,7 +244,7 @@ class BubbleShooterGame:
             alpha = random.randint(40, 120)
             star = pygame.Surface((size * 4, size * 4), pygame.SRCALPHA)
             pygame.draw.circle(star, (255, 255, 255, alpha), (size * 2, size * 2), size)
-            bg.blit(star, (x, y), special_flags=pygame.BLEND_ALPHA_SDL2)
+            bg.blit(star, (x, y), special_flags=BLEND_ALPHA_COMPAT)
 
         glow = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
         pygame.draw.circle(glow, (86, 226, 253, 30), (WIDTH // 2, HEIGHT - 120), 260)
@@ -485,9 +498,9 @@ class BubbleShooterGame:
 
     def _update_aim(self):
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT]:
+        if keys[pygame.K_LEFT] or keys[pygame.K_f]:
             self.aim_angle -= 0.035
-        if keys[pygame.K_RIGHT]:
+        if keys[pygame.K_RIGHT] or keys[pygame.K_y]:
             self.aim_angle += 0.035
 
         self.aim_angle = max(-math.radians(170), min(-math.radians(10), self.aim_angle))
@@ -570,8 +583,8 @@ class BubbleShooterGame:
 
     def _draw_board(self):
         panel = pygame.Surface((GRID_RIGHT - GRID_LEFT + 32, HEIGHT - GRID_TOP + 18), pygame.SRCALPHA)
-        pygame.draw.rect(panel, (10, 14, 35, 110), panel.get_rect(), border_radius=22)
-        pygame.draw.rect(panel, (100, 190, 255, 60), panel.get_rect(), width=2, border_radius=22)
+        draw_rect_compat(panel, (10, 14, 35, 110), panel.get_rect(), 0, 22)
+        draw_rect_compat(panel, (100, 190, 255, 60), panel.get_rect(), 2, 22)
         self.screen.blit(panel, (GRID_LEFT - 16, GRID_TOP - 10))
 
         for bubble in self.board.values():
@@ -596,7 +609,7 @@ class BubbleShooterGame:
         self.screen.blit(combo_txt, (36, 54))
         self.screen.blit(shots_txt, (36, 84))
 
-        right = self.small_font.render("←/→ viser • ' tirer • ( jouer • é rejouer • \" quitter", True, (190, 210, 255))
+        right = self.small_font.render("←/→ ou f/y viser • r tirer • t jouer • g rejouer • h quitter", True, (190, 210, 255))
         self.screen.blit(right, (WIDTH - right.get_width() - 32, 30))
 
         if self.highscores:
@@ -610,14 +623,14 @@ class BubbleShooterGame:
         self.screen.blit(overlay, (0, 0))
 
         card = pygame.Surface((620, 290), pygame.SRCALPHA)
-        pygame.draw.rect(card, (18, 28, 58, 210), card.get_rect(), border_radius=26)
-        pygame.draw.rect(card, (118, 228, 255, 120), card.get_rect(), width=2, border_radius=26)
+        draw_rect_compat(card, (18, 28, 58, 210), card.get_rect(), 0, 26)
+        draw_rect_compat(card, (118, 228, 255, 120), card.get_rect(), 2, 26)
 
         self.screen.blit(card, (WIDTH // 2 - 310, HEIGHT // 2 - 160))
 
         t = self.title_font.render(title, True, color)
         s = self.hud_font.render(subtitle, True, (220, 235, 255))
-        c = self.small_font.render("( pour jouer • \" pour quitter", True, (185, 205, 240))
+        c = self.small_font.render("t pour jouer • h pour quitter", True, (185, 205, 240))
 
         self.screen.blit(t, (WIDTH // 2 - t.get_width() // 2, HEIGHT // 2 - 108))
         self.screen.blit(s, (WIDTH // 2 - s.get_width() // 2, HEIGHT // 2 - 25))
@@ -629,13 +642,13 @@ class BubbleShooterGame:
         self.screen.blit(overlay, (0, 0))
 
         card = pygame.Surface((760, 430), pygame.SRCALPHA)
-        pygame.draw.rect(card, (18, 28, 58, 225), card.get_rect(), border_radius=26)
-        pygame.draw.rect(card, (118, 228, 255, 130), card.get_rect(), width=2, border_radius=26)
+        draw_rect_compat(card, (18, 28, 58, 225), card.get_rect(), 0, 26)
+        draw_rect_compat(card, (118, 228, 255, 130), card.get_rect(), 2, 26)
         self.screen.blit(card, (WIDTH // 2 - 380, HEIGHT // 2 - 230))
 
         title = self.title_font.render("Nouveau HighScore", True, (235, 245, 255))
         sub = self.hud_font.render(f"Score  {self.score}", True, (255, 210, 170))
-        help_text = self.small_font.render("←/→ case • ↑/↓ lettre • ' confirmer", True, (190, 210, 245))
+        help_text = self.small_font.render("←/→ case • ↑/↓ lettre • r confirmer", True, (190, 210, 245))
         self.screen.blit(title, (WIDTH // 2 - title.get_width() // 2, HEIGHT // 2 - 190))
         self.screen.blit(sub, (WIDTH // 2 - sub.get_width() // 2, HEIGHT // 2 - 130))
 
@@ -651,8 +664,8 @@ class BubbleShooterGame:
             bg_color = (45, 70, 120, 220) if active else (28, 45, 84, 210)
             border_color = (255, 230, 140) if active else (120, 190, 240)
             box = pygame.Surface((box_w, box_h), pygame.SRCALPHA)
-            pygame.draw.rect(box, bg_color, box.get_rect(), border_radius=16)
-            pygame.draw.rect(box, border_color, box.get_rect(), width=3, border_radius=16)
+            draw_rect_compat(box, bg_color, box.get_rect(), 0, 16)
+            draw_rect_compat(box, border_color, box.get_rect(), 3, 16)
             self.screen.blit(box, (x, box_y))
 
             letter_surface = self.title_font.render(letter, True, (245, 250, 255))
@@ -722,7 +735,11 @@ class BubbleShooterGame:
                 if event.type == pygame.QUIT:
                     self.running = False
                 elif event.type == pygame.KEYDOWN:
-                    key_char = event.unicode
+                    if event.key == pygame.K_F4 and (event.mod & pygame.KMOD_ALT):
+                        self.running = False
+                        continue
+
+                    key_char = event.unicode.lower()
                     if self.game_state == "name_entry":
                         if event.key == pygame.K_LEFT and self.name_cursor > 0:
                             self.name_cursor -= 1
@@ -732,17 +749,22 @@ class BubbleShooterGame:
                             self.name_letters[self.name_cursor] = self._next_name_char(self.name_letters[self.name_cursor])
                         if event.key == pygame.K_DOWN:
                             self.name_letters[self.name_cursor] = self._prev_name_char(self.name_letters[self.name_cursor])
-                        if key_char == KEY_SHOOT:
+                        if key_char in KEY_SHOOT:
                             self._confirm_name_entry()
                     else:
-                        if key_char == KEY_QUIT:
+                        if key_char in KEY_QUIT:
                             self.running = False
-                        if key_char == KEY_START:
+                        if key_char in KEY_START:
                             self.reset_game()
-                        if key_char == KEY_SHOOT:
+                        if key_char in KEY_SHOOT:
                             self._shoot()
-                        if key_char == KEY_RESTART:
+                        if key_char in KEY_RESTART:
                             self.reset_game()
+
+                        if key_char in KEY_AIM_LEFT:
+                            self.aim_angle -= 0.07
+                        if key_char in KEY_AIM_RIGHT:
+                            self.aim_angle += 0.07
 
             self.update(dt)
             self.draw()

@@ -18,17 +18,18 @@ python3 main.py
 
 ## Contrôles
 
-- `←/→` : viser
-- `'` : tirer
-- `(` : démarrer
-- `é` : rejouer
-- `"` : quitter
+- `←/→` ou `f/y` : viser
+- `r` : tirer
+- `t` : démarrer
+- `g` : rejouer
+- `h` : quitter
+- `Alt+F4` : quitter immédiatement
 
 ### Saisie HighScore
 
 - `←/→` : changer de case lettre
 - `↑/↓` : changer la lettre sélectionnée
-- `'` : confirmer le nom
+- `r` : confirmer le nom
 
 ## Gameplay
 

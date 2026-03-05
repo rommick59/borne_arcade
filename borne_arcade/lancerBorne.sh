@@ -2,6 +2,11 @@
 
 setxkbmap borne
 
+echo "Setup des touches de la borne"
+# === 0. Copier le fichier de configuration clavier ===
+sudo cp ~/borne_arcade/borne /usr/share/X11/xkb/symbols/borne
+
+
 echo "nettoyage des répertoires"
 echo "Veuillez patienter"
 ./clean.sh

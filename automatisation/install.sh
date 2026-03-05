@@ -185,6 +185,7 @@ main() {
     ./automatisation/hooks/setup-hooks.sh
 
     # === 1. Lancer la borne ===
+    chmod +x "$SCRIPT_DIR/../borne_arcade/lancerBorne.sh"
     cd "$SCRIPT_DIR/../borne_arcade" || exit 1
     bash lancerBorne.sh
 

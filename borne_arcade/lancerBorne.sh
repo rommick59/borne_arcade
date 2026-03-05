@@ -1,22 +1,29 @@
 #!/bin/bash
 
+print_section() {
+    echo ""
+    echo "=================================================="
+    echo " $1"
+    echo "=================================================="
+}
+
 # === 0. Copier le fichier de configuration clavier ===
-echo "Setup des touches de la borne"
+print_section "Setup des touches de la borne"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 sudo cp $SCRIPT_DIR/borne /usr/share/X11/xkb/symbols/borne
-# Créer le dossier autostart
+
+# === 0.5. Setup lancement automatique
+print_section "Setup du lancement automatique"
 mkdir -p $HOME/.config/autostart
-cp $SCRIPT_DIR/borne.desktop $HOME/.config/autostart
+sudo cp $SCRIPT_DIR/borne.desktop $HOME/.config/autostart
 
 setxkbmap borne
 
-echo "nettoyage des répertoires"
-echo "Veuillez patienter"
+print_section "Nettoyage des répertoires. Veuillez patienter"
 ./clean.sh
 ./compilation.sh
 
-echo "Lancement du  Menu"
-echo "Veuillez patienter"
+print_section "Lancement du  Menu. Veuillez patienter"
 
 java -cp .:$HOME Main
 ./clean.sh

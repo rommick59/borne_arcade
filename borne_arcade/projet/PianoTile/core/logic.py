@@ -33,7 +33,7 @@ class Logic:
     def actionPageProfil(self):
         self.getInterface().setUpdate(False)
         for event in pygame.event.get():
-            direction = self.getButton().update(event)
+            direction = self.getButton().update(event, navigation_mode=True)
             if direction:    
                 if direction == "enter":
                     if (self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0] == "Retour"):
@@ -116,7 +116,7 @@ class Logic:
                 continue  # ⛔ Ignore le reste (navigation)
 
             # 🎮 Navigation clavier
-            direction = self.getButton().update(event)
+            direction = self.getButton().update(event, navigation_mode=True)
             if direction:
                 if direction == "enter":
                     selection = self.getInterface().getWindowManager().getSelection()
@@ -224,7 +224,7 @@ class Logic:
                 continue  # ⛔ Ignore le reste (navigation)
 
             # 🎮 Navigation clavier
-            direction = self.getButton().update(event)
+            direction = self.getButton().update(event, navigation_mode=True)
             if direction:
                 if direction == "enter":
                     selection = self.getInterface().getWindowManager().getSelection()
@@ -291,7 +291,7 @@ class Logic:
     def actionPageFiltrer(self):
         self.getInterface().setUpdate(False)
         for event in pygame.event.get():
-            direction = self.getButton().update(event)
+            direction = self.getButton().update(event, navigation_mode=True)
             if direction:
                 if direction == "enter":
                     if (self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0] == "Retour"):
@@ -330,7 +330,7 @@ class Logic:
     def actionPageAide(self):
         self.getInterface().setUpdate(False)
         for event in pygame.event.get():
-            direction = self.getButton().update(event)
+            direction = self.getButton().update(event, navigation_mode=True)
             if direction:
                 if direction == "enter":
                     if (self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0] == "Retour"):
@@ -362,7 +362,7 @@ class Logic:
     def actionPageDetail(self):
         self.getInterface().setUpdate(False)
         for event in pygame.event.get():
-            direction = self.getButton().update(event)
+            direction = self.getButton().update(event, navigation_mode=True)
             if direction:
                 if direction == "enter":
                     if (self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0] == "Retour"):
@@ -393,7 +393,7 @@ class Logic:
     def actionPagePlay(self):
         self.getInterface().setUpdate(False)
         for event in pygame.event.get():
-            direction = self.getButton().update(event)
+            direction = self.getButton().update(event, navigation_mode=True)
             if direction == "enter":
                 selection = self.getInterface().getWindowManager().getSelection()
                 item = selection.getSelection()[1][selection.getPosition()][0]
@@ -523,7 +523,7 @@ class Logic:
     def actionPageAccueil(self):
         self.getInterface().setUpdate(False)
         for event in pygame.event.get():
-            direction = self.getButton().update(event)
+            direction = self.getButton().update(event, navigation_mode=True)
             if direction:
                 if direction == "enter":
                     if (self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0] == "Profil"):
@@ -567,7 +567,7 @@ class Logic:
     def actionPageMultijoueur(self):
         self.getInterface().setUpdate(False)
         for event in pygame.event.get():
-            direction = self.getButton().update(event)
+            direction = self.getButton().update(event, navigation_mode=True)
             if direction:    
                 if direction == "enter":
                     if (self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0] == "Retour"):
@@ -608,7 +608,7 @@ class Logic:
     def actionPageStatistique(self):
         self.getInterface().setUpdate(False)
         for event in pygame.event.get():
-            direction = self.getButton().update(event)
+            direction = self.getButton().update(event, navigation_mode=True)
             if direction:
                 if direction == "enter":
                     if (self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0] == "Retour"):
@@ -639,7 +639,7 @@ class Logic:
     def actionPageQuitter(self):
         self.getInterface().setUpdate(False)
         for event in pygame.event.get():
-            direction = self.getButton().update(event)
+            direction = self.getButton().update(event, navigation_mode=True)
             if direction:  
                 if direction == "enter":
                     if (self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0] == "Non"):
@@ -672,7 +672,7 @@ class Logic:
     def actionPageFinGagne(self):
         self.getInterface().setUpdate(False)
         for event in pygame.event.get():
-            direction = self.getButton().update(event)
+            direction = self.getButton().update(event, navigation_mode=True)
             if direction:
                 if direction == "enter":
                     if (self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0] == "Retour"):
@@ -703,7 +703,7 @@ class Logic:
     def actionPageFinPerdu(self):
         self.getInterface().setUpdate(False)
         for event in pygame.event.get():
-            direction = self.getButton().update(event)
+            direction = self.getButton().update(event, navigation_mode=True)
             if direction:
                 if direction == "enter":
                     if (self.getInterface().getWindowManager().getSelection().getSelection()[1][self.getInterface().getWindowManager().getSelection().getPosition()][0] == "Retour"):

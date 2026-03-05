@@ -12,6 +12,14 @@ from menu_main import Menu
 from game_main import Game
 from config import *  # Import all constants from config.py
 
+
+def _matches_key(event, key):
+    if event.key == key:
+        return True
+    key_char = event.unicode.lower() if event.unicode else ""
+    key_name = pygame.key.name(key).lower()
+    return len(key_name) == 1 and key_char == key_name
+
 # Initialisation de Pygame
 pygame.init()
 pygame.mixer.init()  # Pour les effets sonores et musiques
@@ -75,7 +83,7 @@ class TronGame:
                 if event.type == pygame.QUIT:
                     self.running = False
                 elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE or event.key == pygame.K_f:  # ESCAPE ou touche f
+                    if event.key == pygame.K_ESCAPE or _matches_key(event, pygame.K_f):  # ESCAPE ou touche f
                         if self.current_state in ["game", "options", "score_screen"]:
                             self.current_state = "menu"
                             self.play_music("./assets/sounds/music_menu.wav")

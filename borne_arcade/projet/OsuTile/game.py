@@ -24,6 +24,14 @@ from config import (
 from tile import Tile
 
 
+def _matches_key(event, key):
+    if event.key == key:
+        return True
+    key_char = event.unicode.lower() if event.unicode else ""
+    key_name = pygame.key.name(key).lower()
+    return len(key_name) == 1 and key_char == key_name
+
+
 def load_beatmap(filename):
     map_name = os.path.splitext(filename)[0]
     map_path = os.path.join("maps", f"{map_name}.py")
@@ -109,11 +117,11 @@ def end_screen(screen, font, score, total_notes, max_combo):
             if event.type == pygame.QUIT:
                 return "quit"
             elif event.type == pygame.KEYDOWN:
-                if event.key == MENU_RETRY_KEY:
+                if _matches_key(event, MENU_RETRY_KEY):
                     return "retry"
-                elif event.key == pygame.K_t or event.key == MENU_BACK_TO_MENU_KEY:
+                elif _matches_key(event, pygame.K_t) or _matches_key(event, MENU_BACK_TO_MENU_KEY):
                     return "menu"
-                elif event.key == pygame.K_y or event.key == MENU_QUIT_KEY:
+                elif _matches_key(event, pygame.K_y) or _matches_key(event, MENU_QUIT_KEY):
                     return "quit"
 
 
@@ -153,7 +161,7 @@ def play_map(filename):
             if event.type == pygame.QUIT:
                 return "quit"
             elif event.type == pygame.KEYDOWN:
-                if event.key == PAUSE_KEY:
+                if _matches_key(event, PAUSE_KEY):
                     paused = True
                     pygame.mixer.music.pause()
                     draw_pause_menu(screen, font)
@@ -162,7 +170,7 @@ def play_map(filename):
                             if pe.type == pygame.QUIT:
                                 return "quit"
                             elif pe.type == pygame.KEYDOWN:
-                                if pe.key == MENU_RESUME_KEY:
+                                if _matches_key(pe, MENU_RESUME_KEY):
                                     countdown(
                                         screen,
                                         font,
@@ -175,7 +183,7 @@ def play_map(filename):
                                     start_time = time.time() - (current_time / 1000)
                                     pygame.mixer.music.unpause()
                                     paused = False
-                                elif pe.key == MENU_QUIT_KEY:
+                                elif _matches_key(pe, MENU_QUIT_KEY):
                                     return "menu"
                 else:
                     for lane, key in KEY_MAPPING.items():

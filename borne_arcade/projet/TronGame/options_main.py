@@ -10,6 +10,14 @@ import os
 from option_item import OptionItem
 from config import *
 
+
+def _matches_key(event, key):
+    if event.key == key:
+        return True
+    key_char = event.unicode.lower() if event.unicode else ""
+    key_name = pygame.key.name(key).lower()
+    return len(key_name) == 1 and key_char == key_name
+
 class Options:
     def __init__(self, screen, game_ref):
         self.screen = screen
@@ -96,14 +104,14 @@ class Options:
         """Gère les événements du menu des options"""
         if event.type == pygame.KEYDOWN:
             # Navigation verticale (changer d'option)
-            if event.key in [pygame.K_UP, pygame.K_w]:
+            if _matches_key(event, pygame.K_UP) or _matches_key(event, pygame.K_w):
                 self.items[self.selected_index].selected = False
                 self.selected_index = (self.selected_index - 1) % len(self.items)
                 self.items[self.selected_index].selected = True
                 if self.sound_navigate:
                     self.sound_navigate.play()
 
-            elif event.key in [pygame.K_DOWN, pygame.K_s]:
+            elif _matches_key(event, pygame.K_DOWN) or _matches_key(event, pygame.K_s):
                 self.items[self.selected_index].selected = False
                 self.selected_index = (self.selected_index + 1) % len(self.items)
                 self.items[self.selected_index].selected = True
@@ -121,7 +129,10 @@ class Options:
                 if self.items[self.selected_index].next_option():
                     if self.sound_navigate:
                         self.sound_navigate.play()
-                    self.apply_option_change()            # Sélection / Confirmation            elif event.key in [pygame.K_RETURN, pygame.K_SPACE, pygame.K_r]:
+                    self.apply_option_change()
+
+            # Sélection / Confirmation
+            elif _matches_key(event, pygame.K_RETURN) or _matches_key(event, pygame.K_SPACE) or _matches_key(event, pygame.K_r):
                 if self.sound_select:
                     self.sound_select.play()
 
@@ -130,7 +141,7 @@ class Options:
                     return "menu"
                     
             # Retour au menu avec la touche F (comme Escape)
-            elif event.key in [pygame.K_ESCAPE, pygame.K_f]:
+            elif _matches_key(event, pygame.K_ESCAPE) or _matches_key(event, pygame.K_f):
                 if self.sound_select:
                     self.sound_select.play()
                 return "menu"

@@ -20,6 +20,14 @@ from config import (
 from game import play_map
 
 
+def _matches_key(event, key):
+    if event.key == key:
+        return True
+    key_char = event.unicode.lower() if event.unicode else ""
+    key_name = pygame.key.name(key).lower()
+    return len(key_name) == 1 and key_char == key_name
+
+
 def draw_gradient_background(screen, color1, color2):
     """Dessine un fond dégradé vertical."""
     for y in range(SCREEN_HEIGHT):
@@ -124,15 +132,15 @@ def run_menu():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
-                if event.key == MENU_UP_KEY:
+                if _matches_key(event, MENU_UP_KEY):
                     selected_index = (selected_index - 1) % len(beatmaps)
-                elif event.key == MENU_DOWN_KEY:
+                elif _matches_key(event, MENU_DOWN_KEY):
                     selected_index = (selected_index + 1) % len(beatmaps)
-                elif event.key == MENU_SELECT_KEY:
+                elif _matches_key(event, MENU_SELECT_KEY):
                     result = play_map(beatmaps[selected_index])
                     if result == "quit":
                         running = False
-                elif event.key == MENU_QUIT_KEY:
+                elif _matches_key(event, MENU_QUIT_KEY):
                     running = False
 
         clock.tick(FPS)

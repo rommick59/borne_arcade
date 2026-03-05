@@ -33,7 +33,7 @@ public class Main {
             direction1=Controles.NULL;
             if(clavier.getJoyJ1HautTape())
                 direction1=Controles.HAUT;
-            if(clavier.getJoyJ1BasTape())
+            if(clavier.getJoyJ1BasTape() || clavier.getJoyJ1BasEnfoncee())
                 direction1=Controles.BAS;
             if(clavier.getJoyJ1DroiteTape())
                 direction1=Controles.DROITE;
@@ -43,7 +43,7 @@ public class Main {
             direction2=Controles.NULL;
             if(clavier.getJoyJ2HautTape())
                 direction2=Controles.HAUT;
-            if(clavier.getJoyJ2BasTape())
+            if(clavier.getJoyJ2BasTape() || clavier.getJoyJ2BasEnfoncee())
                 direction2=Controles.BAS;
             if(clavier.getJoyJ2DroiteTape())
                 direction2=Controles.DROITE;
@@ -55,7 +55,7 @@ public class Main {
                 boutonEnfonce1=Controles.ACTION;
             if(clavier.getBoutonJ1ZTape()) {
                 boutonEnfonce1=Controles.QUITTER;
-                statut=3;
+                statut=Menu.BOUTONEXIT;
             }
 
             boutonEnfonce2=Controles.NULL;
@@ -63,15 +63,19 @@ public class Main {
                 boutonEnfonce2=Controles.ACTION;
             if(clavier.getBoutonJ2ZTape()) {
                 boutonEnfonce2=Controles.QUITTER;
-                statut=3;
+                statut=Menu.BOUTONEXIT;
             }
 
             switch(statut){
                 case Menu.STATUTMENU:
                     //System.out.println("Statut actuel : 0 => MENU");
-                    statut = m.prochaineFrame(direction1,boutonEnfonce1);
+                    int directionMenu = direction1 != Controles.NULL ? direction1 : direction2;
+                    int boutonMenu = boutonEnfonce1 != Controles.NULL ? boutonEnfonce1 : boutonEnfonce2;
+
+                    statut = m.prochaineFrame(directionMenu,boutonMenu);
                     if(statut==Menu.BOUTON1JOUEUR ||statut==Menu.BOUTON2JOUEURS) {
                         f.effacer();
+                        clavier.reinitialisation();
                         p = new Partie(f,statut,clavier);
                     }
                     break;

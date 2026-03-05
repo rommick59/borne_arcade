@@ -38,6 +38,10 @@ GRID_RIGHT = WIDTH - GRID_LEFT
 
 SHOOTER_POS = pygame.Vector2(WIDTH // 2, HEIGHT - 90)
 SHOT_SPEED = 920
+SHOT_MAX_STEP = 8
+
+AIM_SPEED = 1
+AIM_TAP_STEP = 0.035
 
 NEW_ROW_EVERY = 6
 
@@ -51,12 +55,12 @@ NAME_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ ."
 NAME_LENGTH = 3
 
 COLORS = [
-    (86, 226, 253),
-    (252, 129, 129),
-    (255, 214, 102),
-    (123, 237, 159),
-    (165, 144, 255),
-    (255, 151, 225),
+    (56, 166, 255),
+    (255, 92, 92),
+    (255, 214, 74),
+    (74, 224, 126),
+    (170, 112, 255),
+    (255, 152, 58),
 ]
 
 BG_TOP = (14, 18, 40)
@@ -259,6 +263,12 @@ class BubbleShooterGame:
 
         for i, color in enumerate(COLORS):
             surf = pygame.Surface((size, size), pygame.SRCALPHA)
+            outline_color = (
+                max(0, int(color[0] * 0.35)),
+                max(0, int(color[1] * 0.35)),
+                max(0, int(color[2] * 0.35)),
+                255,
+            )
 
             for ring in range(BUBBLE_RADIUS, 1, -1):
                 t = ring / BUBBLE_RADIUS
@@ -269,6 +279,8 @@ class BubbleShooterGame:
                     255,
                 )
                 pygame.draw.circle(surf, shade, (center, center), ring)
+
+            pygame.draw.circle(surf, outline_color, (center, center), BUBBLE_RADIUS, 3)
 
             pygame.draw.circle(surf, (255, 255, 255, 90), (center - 7, center - 8), BUBBLE_RADIUS // 2)
             pygame.draw.circle(surf, (255, 255, 255, 45), (center - 13, center - 14), BUBBLE_RADIUS // 5)
@@ -342,16 +354,18 @@ class BubbleShooterGame:
                 stack.append(nb)
         return visited
 
-    def _drop_floating(self):
+    def _drop_floating(self, grant_rewards: bool = True):
         anchored = self._connected_to_top()
         floating = [k for k in self.board if k not in anchored]
         for key in floating:
             bubble = self.board.pop(key)
             self._burst_particles(self._grid_to_pixel(bubble.row, bubble.col), COLORS[bubble.color_index], 16, intense=True)
-        if floating:
+        if floating and grant_rewards:
             self.score += len(floating) * 22
             self.combo += 1
             self.screen_shake = max(self.screen_shake, 8)
+        elif floating:
+            self.screen_shake = max(self.screen_shake, 6)
 
     def _pick_color_for_spawn(self):
         if self.board:
@@ -486,6 +500,8 @@ class BubbleShooterGame:
                 color = random.choice(active_colors)
                 self.board[(0, col)] = Bubble(0, col, color)
 
+        self._drop_floating(grant_rewards=False)
+
         self.screen_shake = max(self.screen_shake, 5)
         if self._has_lost():
             self._start_name_entry("lost")
@@ -496,36 +512,50 @@ class BubbleShooterGame:
                 return True
         return False
 
-    def _update_aim(self):
+    def _update_aim(self, dt):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT] or keys[pygame.K_f]:
-            self.aim_angle -= 0.035
+            self.aim_angle -= AIM_SPEED * dt
         if keys[pygame.K_RIGHT] or keys[pygame.K_y]:
-            self.aim_angle += 0.035
+            self.aim_angle += AIM_SPEED * dt
 
         self.aim_angle = max(-math.radians(170), min(-math.radians(10), self.aim_angle))
+
+    def _collides_with_board(self, pos: pygame.Vector2):
+        collision_distance_sq = BUBBLE_DIAMETER ** 2
+        for bubble in self.board.values():
+            bpos = self._grid_to_pixel(bubble.row, bubble.col)
+            if pos.distance_squared_to(bpos) <= collision_distance_sq:
+                return True
+        return False
 
     def _update_shot(self, dt):
         if not self.current_shot:
             return
 
         shot = self.current_shot
-        shot.position += shot.velocity * dt
+        movement = shot.velocity * dt
+        distance = movement.length()
+        steps = max(1, math.ceil(distance / SHOT_MAX_STEP))
+        step_move = movement / steps
 
-        if shot.position.x <= GRID_LEFT + BUBBLE_RADIUS:
-            shot.position.x = GRID_LEFT + BUBBLE_RADIUS
-            shot.velocity.x *= -1
-        elif shot.position.x >= GRID_RIGHT - BUBBLE_RADIUS:
-            shot.position.x = GRID_RIGHT - BUBBLE_RADIUS
-            shot.velocity.x *= -1
+        for _ in range(steps):
+            shot.position += step_move
 
-        if shot.position.y <= GRID_TOP + BUBBLE_RADIUS:
-            self._insert_shot_to_grid()
-            return
+            if shot.position.x <= GRID_LEFT + BUBBLE_RADIUS:
+                shot.position.x = GRID_LEFT + BUBBLE_RADIUS
+                shot.velocity.x = abs(shot.velocity.x)
+                step_move.x = abs(step_move.x)
+            elif shot.position.x >= GRID_RIGHT - BUBBLE_RADIUS:
+                shot.position.x = GRID_RIGHT - BUBBLE_RADIUS
+                shot.velocity.x = -abs(shot.velocity.x)
+                step_move.x = -abs(step_move.x)
 
-        for bubble in self.board.values():
-            bpos = self._grid_to_pixel(bubble.row, bubble.col)
-            if shot.position.distance_squared_to(bpos) <= (BUBBLE_DIAMETER - 2) ** 2:
+            if shot.position.y <= GRID_TOP + BUBBLE_RADIUS:
+                self._insert_shot_to_grid()
+                return
+
+            if self._collides_with_board(shot.position):
                 self._insert_shot_to_grid()
                 return
 
@@ -693,7 +723,7 @@ class BubbleShooterGame:
             self._update_particles(dt)
             return
 
-        self._update_aim()
+        self._update_aim(dt)
         self._update_shot(dt)
         self._update_particles(dt)
 
@@ -762,9 +792,11 @@ class BubbleShooterGame:
                             self.reset_game()
 
                         if key_char in KEY_AIM_LEFT:
-                            self.aim_angle -= 0.07
+                            self.aim_angle -= AIM_TAP_STEP
                         if key_char in KEY_AIM_RIGHT:
-                            self.aim_angle += 0.07
+                            self.aim_angle += AIM_TAP_STEP
+
+                        self.aim_angle = max(-math.radians(170), min(-math.radians(10), self.aim_angle))
 
             self.update(dt)
             self.draw()

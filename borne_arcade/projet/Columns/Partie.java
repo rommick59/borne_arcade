@@ -178,6 +178,8 @@ public class Partie {
             this.prochaineFrameJoueur(2,direction2,boutonEnfonce2);
         }
 
+        this.rafraichissement();
+
         //System.out.println("Statut1 : "+this.statut1);
         //System.out.println("Statut2 : "+this.statut2);
 
@@ -376,7 +378,6 @@ public class Partie {
                 puits.afficher(f);
                 if(puits.getNumCombo()==0)
                     puits.affichageCourant(f);
-                this.rafraichissement();
 
                 break;
             case GAMEOVER:

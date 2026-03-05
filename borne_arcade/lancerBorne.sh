@@ -1,14 +1,14 @@
 #!/bin/bash
 
-setxkbmap borne
-
 # === 0. Copier le fichier de configuration clavier ===
 echo "Setup des touches de la borne"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 sudo cp $SCRIPT_DIR/borne /usr/share/X11/xkb/symbols/borne
 # Créer le dossier autostart
-mkdir $HOME/.config/autostart
-sudo cp $SCRIPT_DIR/borne.desktop $HOME/.config/autostart
+mkdir -p $HOME/.config/autostart
+cp $SCRIPT_DIR/borne.desktop $HOME/.config/autostart
+
+setxkbmap borne
 
 echo "nettoyage des répertoires"
 echo "Veuillez patienter"

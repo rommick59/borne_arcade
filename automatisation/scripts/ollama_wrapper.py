@@ -14,6 +14,7 @@ import time  # Pour boucler avec un timeout lors du démarrage serveur
 from dataclasses import dataclass  # Modèles de données simples et typés
 from pathlib import Path  # Manipulation robuste des chemins
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Union  # Types
+import sys
 
 
 # ------------------------------
@@ -40,7 +41,12 @@ class OllamaServerStartError(OllamaError):
 # Dataclasses pour structurer les réponses (lisible + typé)
 # ------------------------------
 
-@dataclass(frozen=True, slots=True)
+_DATACLASS_OPTIONS = {"frozen": True}
+if sys.version_info >= (3, 10):
+    _DATACLASS_OPTIONS["slots"] = True
+
+
+@dataclass(**_DATACLASS_OPTIONS)
 class OllamaModelDetails:
     """Détails d'un modèle, tels que renvoyés dans /api/tags."""
     format: Optional[str] = None
@@ -50,7 +56,7 @@ class OllamaModelDetails:
     quantization_level: Optional[str] = None
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(**_DATACLASS_OPTIONS)
 class OllamaModelInfo:
     """Informations de base sur un modèle installé (issu de /api/tags)."""
     name: str
@@ -60,7 +66,7 @@ class OllamaModelInfo:
     details: Optional[OllamaModelDetails] = None
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(**_DATACLASS_OPTIONS)
 class OllamaGenerateResult:
     """Résultat simplifié de /api/generate en mode stream=false."""
     response: str

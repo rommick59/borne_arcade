@@ -1,4 +1,4 @@
-# Documentation — Borne Arcade
+# Documentation — SAE Borne Arcade
 
 ## Sommaire
 

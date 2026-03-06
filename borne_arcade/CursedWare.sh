@@ -7,15 +7,16 @@ LOCAL_LOVE="$ROOT_DIR/love-11.5/src/love"
 
 cd "$GAME_DIR" || exit 1
 
-# Priorite a Love2D systeme (meilleur support multi-architecture sur borne).
-if command -v love >/dev/null 2>&1; then
-	love .
+# Priorite au runtime local 11.5: corrige le bug "unexpected alignment"
+# observe avec certaines installations 32-bit de Love 11.3.
+if [[ -x "$LOCAL_LOVE" ]]; then
+	"$LOCAL_LOVE" .
 	exit $?
 fi
 
-# Fallback sur le runtime local si present.
-if [[ -x "$LOCAL_LOVE" ]]; then
-	"$LOCAL_LOVE" .
+# Fallback sur Love2D systeme si le runtime local n'est pas disponible.
+if command -v love >/dev/null 2>&1; then
+	love .
 	exit $?
 fi
 

@@ -289,8 +289,7 @@ chmod +x MonJeu.sh
 ./lancerBorne.sh
 ```
 
-Le jeu doit apparaître automatiquement dans la liste.
-
+Le jeu doit apparaître automatiquement dans la liste et il faut être dans le dossier borne_arcade (cd borne_arcade)
 ---
 
 #### Dépannage rapide

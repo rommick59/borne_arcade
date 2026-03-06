@@ -7,6 +7,10 @@ print_section() {
     echo "=================================================="
 }
 
+# Permet d'exécuter ce script depuis n'importe quel dossier.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR" || exit 1
+
 setxkbmap borne
 
 print_section "Nettoyage des répertoires. Veuillez patienter"
@@ -15,7 +19,7 @@ print_section "Nettoyage des répertoires. Veuillez patienter"
 
 print_section "Lancement du  Menu. Veuillez patienter"
 
-java -cp .:$HOME Main
+java -cp "$SCRIPT_DIR:$HOME" Main
 ./clean.sh
 
 #for i in {30..1}

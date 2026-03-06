@@ -29,6 +29,7 @@ public class Graphique {
 	public static Bruitage musiqueFond;
 	private static String[] tableauMusiques;
 	private static int cptMus;
+	private static final int DELAI_BOUCLE_MENU_MS = 16;
 
 
     public Graphique(){
@@ -180,7 +181,7 @@ public class Graphique {
 				System.err.println(e.getMessage());
 			}
 			try{
-				Thread.sleep(50);
+				Thread.sleep(DELAI_BOUCLE_MENU_MS);
 			}catch(Exception e){}
 			
 			if(!fermetureMenu){

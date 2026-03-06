@@ -166,6 +166,8 @@ install_mg2d() {
 main() {
     print_section "VÉRIFICATION DES DÉPENDANCES"
 
+    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
     detect_arch
     install_java
     check_python
@@ -177,17 +179,20 @@ main() {
 
     print_summary
 
-    # === 0. Copier le fichier de configuration clavier ===
+    # === 0. Installer le layout clavier de la borne ===
     print_section "Setup des touches de la borne"
-    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-    sudo cp $SCRIPT_DIR/../borne_arcade/borne /usr/share/X11/xkb/symbols/borne
+    if [ ! -f "$SCRIPT_DIR/scripts/verify_layout.sh" ] || [ ! -f "$SCRIPT_DIR/scripts/install_layout.sh" ]; then
+        echo "Erreur: scripts layout manquants dans $SCRIPT_DIR/scripts" >&2
+        exit 1
+    fi
+
+    bash "$SCRIPT_DIR/scripts/verify_layout.sh"
+    bash "$SCRIPT_DIR/scripts/install_layout.sh"
 
     # === 0.5. Setup lancement automatique
     print_section "Setup du lancement automatique"
     mkdir -p $HOME/.config/autostart
     sudo cp $SCRIPT_DIR/../borne_arcade/borne.desktop $HOME/.config/autostart
-
-    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
     chmod +x ./automatisation/hooks/setup-hooks.sh
     ./automatisation/hooks/setup-hooks.sh

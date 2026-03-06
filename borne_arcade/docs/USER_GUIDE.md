@@ -37,72 +37,127 @@ Bienvenue sur la borne d'arcade ! Cette documentation vous guide à travers l'ut
 
 ## 🕹️ Liste des Jeux Disponibles
 
-### 🎮 1. **Columns**
+### 🎮 1. **Babble_Shot** (`bablle_shot`)
+```bash
+./Babble_Shot.sh
+```
+- **Contrôles (J1)** :
+	`r t y`
+	`f g h`
+
+### 🎮 2. **ball-blast**
+```bash
+./ball-blast.sh
+```
+- **Contrôles (J1)** :
+	`r t y`
+	`f g h`
+
+### 🎮 3. **Columns**
 ```bash
 ./Columns.sh
 ```
-- **Contrôles** : Flèches directionnelles (Joueur 1), WASD (Joueur 2)
+- **Contrôles (J1)** :
+	`r t y`
+	`f g h`
 - **Score** : Sauvegardé dans `highscore`
 
-### 🎮 2. **DinoRail**
+### 🎮 4. **CursedWare**
+```bash
+./CursedWare.sh
+```
+- **Contrôles (J1)** :
+	`r t y`
+	`f g h`
+
+### 🎮 5. **DinoRail**
 ```bash
 ./DinoRail.sh
 ```
-- **Contrôles** : Flèches directionnelles (Joueur 1), WASD (Joueur 2)
+- **Contrôles (J1)** :
+	`r t y`
+	`f g h`
 
-### 🎮 3. **JavaSpace**
+### 🎮 6. **InitialDrift**
+```bash
+./InitialDrift.sh
+```
+- **Contrôles (J1)** :
+	`r t y`
+	`f g h`
+
+### 🎮 7. **JavaSpace**
 ```bash
 ./JavaSpace.sh
 ```
-- **Contrôles** : Flèches directionnelles (Joueur 1), WASD (Joueur 2)
+- **Contrôles (J1)** :
+	`r t y`
+	`f g h`
 
-### 🎮 4. **Kowasu_Renga**
+### 🎮 8. **Kowasu_Renga**
 ```bash
 ./Kowasu_Renga.sh
 ```
-- **Contrôles** : Flèches directionnelles (Joueur 1), WASD (Joueur 2)
+- **Contrôles (J1)** :
+	`r t y`
+	`f g h`
 
-### 🎮 5. **Minesweeper**
+### 🎮 9. **Minesweeper**
 ```bash
 ./Minesweeper.sh
 ```
-- **Contrôles** : Souris (clique gauche/droit)
+- **Contrôles (J1)** :
+	`r t y`
+	`f g h`
 
-### 🎮 6. **OsuTile**
+### 🎮 10. **OsuTile**
 ```bash
 ./OsuTile.sh
 ```
-- **Contrôles** : Souris (clique gauche)
+- **Contrôles (J1)** :
+	`r t y`
+	`f g h`
 
-### 🎮 7. **PianoTile**
+### 🎮 11. **PianoTile**
 ```bash
 ./PianoTile.sh
 ```
-- **Contrôles** : Souris (clique gauche)
+- **Contrôles (J1)** :
+	`r t y`
+	`f g h`
 
-### 🎮 8. **Pong**
+### 🎮 12. **Pong**
 ```bash
 ./Pong.sh
 ```
-- **Contrôles** : Flèches directionnelles (Joueur 1), WASD (Joueur 2)
+- **Contrôles (J1)** :
+	`r t y`
+	`f g h`
 
-### 🎮 9. **Puissance_X**
+### 🎮 13. **Puissance_X**
 ```bash
 ./Puissance_X.sh
 ```
+- **Contrôles (J1)** :
+	`r t y`
+	`f g h`
 - **Paramètres** : `-Dsun.java2d.pmoffscreen=false` pour optimiser les performances sur Linux/X11
 
-### 🎮 10. **Snake_Eater**
+### 🎮 14. **Snake_Eater**
 ```bash
 ./Snake_Eater.sh
 ```
-- **Contrôles** : Flèches directionnelles (Joueur 1), WASD (Joueur 2)
+- **Contrôles (J1)** :
+	`r t y`
+	`f g h`
 
-### 🎮 11. **TronGame**
+### 🎮 15. **TronGame**
 ```bash
 ./TronGame.sh
 ```
-- **Contrôles** : Flèches directionnelles (Joueur 1), WASD (Joueur 2)
+- **Contrôles (J1)** :
+	`r t y`
+	`f g h`
 - **Son** : Musique et effets sonores via `pygame.mixer`
 
 ---

@@ -9,7 +9,21 @@ print_section() {
 
 # Permet d'exécuter ce script depuis n'importe quel dossier.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WORKSPACE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+VERIFY_LAYOUT_SCRIPT="$WORKSPACE_ROOT/automatisation/scripts/verify_layout.sh"
+INSTALL_LAYOUT_SCRIPT="$WORKSPACE_ROOT/automatisation/scripts/install_layout.sh"
+
 cd "$SCRIPT_DIR" || exit 1
+
+print_section "Configuration du mappage clavier"
+if [[ -x "$VERIFY_LAYOUT_SCRIPT" && -x "$INSTALL_LAYOUT_SCRIPT" ]]; then
+    bash "$VERIFY_LAYOUT_SCRIPT"
+    bash "$INSTALL_LAYOUT_SCRIPT"
+else
+    echo "Avertissement: scripts de layout introuvables ou non executables"
+    echo "- $VERIFY_LAYOUT_SCRIPT"
+    echo "- $INSTALL_LAYOUT_SCRIPT"
+fi
 
 setxkbmap borne
 

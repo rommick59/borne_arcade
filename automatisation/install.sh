@@ -132,6 +132,23 @@ install_lua() {
 }
 
 # ==============================
+# LOVE2D
+# ==============================
+
+install_love() {
+    print_section "VÉRIFICATION LOVE2D"
+
+    if command -v love >/dev/null 2>&1; then
+        echo "Love2D installé : $(love --version 2>&1 | head -n 1)"
+    else
+        echo "Love2D non trouvé. Installation..."
+        sudo apt update
+        sudo apt install -y love
+        echo "Love2D installé : $(love --version 2>&1 | head -n 1)"
+    fi
+}
+
+# ==============================
 # MG2D
 # ==============================
 
@@ -175,6 +192,7 @@ main() {
     check_pygame
     install_pygame
     install_lua
+    install_love
     install_mg2d
 
     print_summary
@@ -215,6 +233,11 @@ print_summary() {
     echo "Java    : $(java -version 2>&1 | awk -F '"' '/version/ {print $2}')"
     echo "Python3 : $(python3 --version)"
     echo "Lua     : $(lua -v 2>&1 | awk '{print $2}')"
+    if command -v love >/dev/null 2>&1; then
+        echo "Love2D  : $(love --version 2>&1 | head -n 1)"
+    else
+        echo "Love2D  : non installé"
+    fi
 }
 
 main

@@ -148,6 +148,8 @@ Après l'installation des dépendances, le script exécute les étapes suivantes
 3. Lance la borne arcade (`lancerBorne.sh`)
 4. Exécute `manager.py --force` pour générer toute la documentation initiale
 
+> **Démarrage automatique** — `lancerBorne.sh` est configuré pour se lancer automatiquement au démarrage de la borne. À chaque mise sous tension, la borne démarre directement sur l'interface de sélection des jeux, sans intervention manuelle.
+
 ---
 
 ### 3.4 Montée de version — `upgrade_all.sh`
@@ -289,7 +291,10 @@ chmod +x MonJeu.sh
 ./lancerBorne.sh
 ```
 
-Le jeu doit apparaître automatiquement dans la liste et il faut être dans le dossier borne_arcade (cd borne_arcade)
+Le jeu doit apparaître automatiquement dans la liste. Il faut être dans le dossier `borne_arcade` (cd borne_arcade).
+
+> **Note** — `lancerBorne.sh` se lance automatiquement au démarrage de la borne. Il n'est donc nécessaire de l'exécuter manuellement que lors du développement ou après un redémarrage en dehors du contexte normal d'utilisation.
+
 ---
 
 #### Dépannage rapide
